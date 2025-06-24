@@ -11,8 +11,10 @@ from .core.database import get_db, Base, engine
 from .api.auth import router as auth_router, get_current_user
 from .api.chat import router as chat_router
 from .api.mcp import router as mcp_router
+from .api.accessibility import accessibility_router
 from .models.user import User
 from .services.mcp_service import mcp_service_instance, MCP_AVAILABLE
+from .services.accessibility_service import accessibility_server
 from . import integrations  # Initialize MCP integration
 
 # Create database tables
@@ -50,10 +52,19 @@ if MCP_AVAILABLE and hasattr(mcp_service_instance["server"], 'streamable_http_ap
     except Exception as e:
         print(f"⚠️  Error montando FastMCP server: {e}")
 
+# Mount Accessibility MCP server
+try:
+    accessibility_app = accessibility_server.streamable_http_app()
+    app.mount("/accessibility-mcp", accessibility_app)
+    print("✅ Accessibility MCP server montado en /accessibility-mcp")
+except Exception as e:
+    print(f"⚠️  Error montando Accessibility MCP server: {e}")
+
 # Include API routers
 app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(mcp_router)
+app.include_router(accessibility_router, prefix="/api")
 
 # Web Routes
 @app.get("/", response_class=HTMLResponse)
@@ -95,6 +106,11 @@ async def profile_page(request: Request):
 async def mcp_tools_page(request: Request):
     """MCP Tools testing page"""
     return templates.TemplateResponse("mcp_tools.html", {"request": request})
+
+@app.get("/accessibility", response_class=HTMLResponse)
+async def accessibility_page(request: Request):
+    """Accessibility tools page"""
+    return templates.TemplateResponse("accessibility.html", {"request": request})
 
 # Health check endpoint
 @app.get("/health")

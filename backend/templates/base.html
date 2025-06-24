@@ -15,6 +15,7 @@
     
     <!-- Styles -->
     <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/accessibility.css">
     
     {% block extra_head %}{% endblock %}
 </head>
@@ -52,6 +53,11 @@
                     <span>Herramientas MCP</span>
                 </a>
                 
+                <a href="/accessibility" class="nav-item {% if request.url.path == '/accessibility' %}active{% endif %}">
+                    <i class="nav-icon fas fa-universal-access"></i>
+                    <span>Accesibilidad</span>
+                </a>
+                
                 <a href="/profile" class="nav-item {% if request.url.path == '/profile' %}active{% endif %}">
                     <i class="nav-icon fas fa-user"></i>
                     <span>Mi Perfil</span>
@@ -75,6 +81,7 @@
     
     <!-- Scripts -->
     <script src="/static/js/main.js"></script>
+    <script src="/static/js/accessibility.js"></script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

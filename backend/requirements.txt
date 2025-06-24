@@ -19,6 +19,7 @@ tiktoken==0.8.0
 
 # Model Context Protocol
 mcp==1.9.4
+fastmcp==2.9.0
 
 # Caching and sessions (opcional por ahora)
 # redis==5.0.1

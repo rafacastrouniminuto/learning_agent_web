@@ -1,0 +1,746 @@
+{% extends "base.html" %}
+
+{% block title %}Herramientas de Accesibilidad - Living Lab UNIMINUTO{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="/static/css/accessibility.css">
+    <meta name="description" content="Herramientas de accesibilidad para personas con discapacidad visual - Living Lab UNIMINUTO">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 id="page-title">
+        <i class="fas fa-universal-access" aria-hidden="true"></i>
+        Herramientas de Accesibilidad
+    </h1>
+    <p class="page-subtitle">
+        Configuración de accesibilidad para personas con discapacidad visual
+    </p>
+</div>
+
+<div class="accessibility-dashboard">
+    <!-- Panel de Estado Actual -->
+    <div class="status-panel card">
+        <h2>
+            <i class="fas fa-info-circle" aria-hidden="true"></i>
+            Estado Actual
+        </h2>
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="status-label">Modo de Contraste:</span>
+                <span class="status-value" id="current-contrast">Normal</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Tamaño de Texto:</span>
+                <span class="status-value" id="current-font-size">Normal</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Lector de Pantalla:</span>
+                <span class="status-value" id="current-screen-reader">Desactivado</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Navegación por Voz:</span>
+                <span class="status-value" id="current-voice-nav">Desactivado</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controles Rápidos -->
+    <div class="quick-controls card">
+        <h2>
+            <i class="fas fa-sliders-h" aria-hidden="true"></i>
+            Controles Rápidos
+        </h2>
+        
+        <!-- Contraste -->
+        <div class="control-section">
+            <h3>Modo de Contraste</h3>
+            <div class="button-group" role="radiogroup" aria-labelledby="contrast-heading">
+                <button class="control-btn active" data-contrast="normal" role="radio" aria-checked="true">
+                    <i class="fas fa-palette" aria-hidden="true"></i>
+                    Normal
+                </button>
+                <button class="control-btn" data-contrast="high" role="radio" aria-checked="false">
+                    <i class="fas fa-adjust" aria-hidden="true"></i>
+                    Alto Contraste
+                </button>
+                <button class="control-btn" data-contrast="yellow-black" role="radio" aria-checked="false">
+                    <i class="fas fa-sun" aria-hidden="true"></i>
+                    Amarillo/Negro
+                </button>
+                <button class="control-btn" data-contrast="blue-white" role="radio" aria-checked="false">
+                    <i class="fas fa-water" aria-hidden="true"></i>
+                    Azul/Blanco
+                </button>
+            </div>
+        </div>
+
+        <!-- Tamaño de Fuente -->
+        <div class="control-section">
+            <h3>Tamaño de Texto</h3>
+            <div class="button-group" role="radiogroup" aria-labelledby="font-heading">
+                <button class="control-btn" data-font="small" role="radio" aria-checked="false">
+                    <i class="fas fa-font" style="font-size: 0.8em;" aria-hidden="true"></i>
+                    Pequeño
+                </button>
+                <button class="control-btn active" data-font="medium" role="radio" aria-checked="true">
+                    <i class="fas fa-font" aria-hidden="true"></i>
+                    Normal
+                </button>
+                <button class="control-btn" data-font="large" role="radio" aria-checked="false">
+                    <i class="fas fa-font" style="font-size: 1.2em;" aria-hidden="true"></i>
+                    Grande
+                </button>
+                <button class="control-btn" data-font="extra-large" role="radio" aria-checked="false">
+                    <i class="fas fa-font" style="font-size: 1.4em;" aria-hidden="true"></i>
+                    Muy Grande
+                </button>
+            </div>
+        </div>
+
+        <!-- Herramientas de Asistencia -->
+        <div class="control-section">
+            <h3>Herramientas de Asistencia</h3>
+            <div class="button-group">
+                <button class="control-btn toggle-btn" id="screen-reader-toggle" aria-pressed="false">
+                    <i class="fas fa-volume-up" aria-hidden="true"></i>
+                    Lector de Pantalla
+                </button>
+                <button class="control-btn toggle-btn" id="voice-nav-toggle" aria-pressed="false">
+                    <i class="fas fa-microphone" aria-hidden="true"></i>
+                    Navegación por Voz
+                </button>
+                <button class="control-btn" id="keyboard-shortcuts-btn">
+                    <i class="fas fa-keyboard" aria-hidden="true"></i>
+                    Atajos de Teclado
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información de Ayuda -->
+    <div class="help-panel card">
+        <h2>
+            <i class="fas fa-question-circle" aria-hidden="true"></i>
+            Información de Ayuda
+        </h2>
+        
+        <div class="help-sections">
+            <div class="help-section">
+                <h3>Atajos de Teclado Principales</h3>
+                <dl class="shortcuts-list">
+                    <dt>Alt + A</dt>
+                    <dd>Abrir panel de accesibilidad flotante</dd>
+                    
+                    <dt>Alt + C</dt>
+                    <dd>Cambiar modo de contraste</dd>
+                    
+                    <dt>Alt + F</dt>
+                    <dd>Cambiar tamaño de fuente</dd>
+                    
+                    <dt>Alt + R</dt>
+                    <dd>Activar/desactivar lector de pantalla</dd>
+                    
+                    <dt>Alt + V</dt>
+                    <dd>Activar/desactivar navegación por voz</dd>
+                    
+                    <dt>Alt + /</dt>
+                    <dd>Mostrar todos los atajos</dd>
+                </dl>
+            </div>
+
+            <div class="help-section">
+                <h3>Comandos de Voz</h3>
+                <ul class="voice-commands-list">
+                    <li><strong>"ir dashboard"</strong> - Navegar al tablero principal</li>
+                    <li><strong>"ir chat"</strong> - Abrir el chat con IA</li>
+                    <li><strong>"ir rutas"</strong> - Ver rutas de aprendizaje</li>
+                    <li><strong>"abrir menú"</strong> - Mostrar menú lateral</li>
+                    <li><strong>"siguiente"</strong> - Ir al siguiente elemento</li>
+                    <li><strong>"anterior"</strong> - Ir al elemento anterior</li>
+                    <li><strong>"leer página"</strong> - Leer todo el contenido</li>
+                    <li><strong>"parar lectura"</strong> - Detener la lectura</li>
+                </ul>
+            </div>
+
+            <div class="help-section">
+                <h3>Navegación por Teclado</h3>
+                <ul class="navigation-tips">
+                    <li><strong>Tab</strong> - Navegar hacia adelante</li>
+                    <li><strong>Shift + Tab</strong> - Navegar hacia atrás</li>
+                    <li><strong>Enter</strong> - Activar enlaces y botones</li>
+                    <li><strong>Espacio</strong> - Activar botones y checkboxes</li>
+                    <li><strong>Flechas</strong> - Navegar en menús y listas</li>
+                    <li><strong>Escape</strong> - Cerrar diálogos y menús</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pruebas y Diagnóstico -->
+    <div class="test-panel card">
+        <h2>
+            <i class="fas fa-tools" aria-hidden="true"></i>
+            Pruebas y Diagnóstico
+        </h2>
+        
+        <div class="test-controls">
+            <button class="test-btn" id="test-accessibility">
+                <i class="fas fa-play" aria-hidden="true"></i>
+                Ejecutar Pruebas de Accesibilidad
+            </button>
+            
+            <button class="test-btn" id="test-screen-reader">
+                <i class="fas fa-volume-up" aria-hidden="true"></i>
+                Probar Lector de Pantalla
+            </button>
+            
+            <button class="test-btn" id="test-voice-nav">
+                <i class="fas fa-microphone" aria-hidden="true"></i>
+                Probar Navegación por Voz
+            </button>
+            
+            <button class="test-btn" id="reset-all">
+                <i class="fas fa-undo" aria-hidden="true"></i>
+                Restablecer Todo
+            </button>
+        </div>
+        
+        <div class="test-results" id="test-results" aria-live="polite">
+            <p>Haga clic en "Ejecutar Pruebas" para verificar el funcionamiento de las herramientas de accesibilidad.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Región live para anuncios -->
+<div class="sr-only" aria-live="polite" aria-atomic="true" id="accessibility-announcements"></div>
+
+<style>
+.accessibility-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.status-panel {
+    grid-column: 1 / -1;
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: var(--background-color);
+    border-radius: 4px;
+}
+
+.status-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.status-value {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.control-section {
+    margin-bottom: 25px;
+}
+
+.control-section h3 {
+    margin-bottom: 10px;
+    color: var(--text-primary);
+    font-size: 1.1em;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.control-btn {
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-primary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    min-height: 44px;
+}
+
+.control-btn:hover,
+.control-btn:focus {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.control-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.control-btn.toggle-btn.active {
+    background: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.help-sections {
+    display: grid;
+    gap: 20px;
+}
+
+.help-section h3 {
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.shortcuts-list {
+    display: grid;
+    gap: 8px;
+}
+
+.shortcuts-list dt {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-family: monospace;
+}
+
+.shortcuts-list dd {
+    margin-left: 20px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.voice-commands-list,
+.navigation-tips {
+    list-style: none;
+    padding: 0;
+}
+
+.voice-commands-list li,
+.navigation-tips li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.voice-commands-list li:last-child,
+.navigation-tips li:last-child {
+    border-bottom: none;
+}
+
+.test-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.test-btn {
+    padding: 10px 16px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-primary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    min-height: 44px;
+}
+
+.test-btn:hover,
+.test-btn:focus {
+    background: var(--info-color);
+    color: white;
+    border-color: var(--info-color);
+}
+
+.test-results {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 15px;
+    min-height: 100px;
+    color: var(--text-secondary);
+}
+
+.test-results.loading {
+    text-align: center;
+    color: var(--info-color);
+}
+
+.test-results.success {
+    border-color: var(--success-color);
+    background: var(--success-light);
+}
+
+.test-results.error {
+    border-color: var(--error-color);
+    background: var(--error-light);
+}
+
+@media (max-width: 768px) {
+    .accessibility-dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .button-group {
+        flex-direction: column;
+    }
+    
+    .control-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .test-controls {
+        flex-direction: column;
+    }
+}
+</style>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/accessibility.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar controles de accesibilidad
+    initAccessibilityControls();
+    
+    // Cargar estado actual
+    loadCurrentSettings();
+});
+
+function initAccessibilityControls() {
+    // Controles de contraste
+    document.querySelectorAll('[data-contrast]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const mode = this.dataset.contrast;
+            setContrastMode(mode);
+        });
+    });
+
+    // Controles de fuente
+    document.querySelectorAll('[data-font]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const size = this.dataset.font;
+            setFontSize(size);
+        });
+    });
+
+    // Toggle de lector de pantalla
+    document.getElementById('screen-reader-toggle').addEventListener('click', function() {
+        toggleScreenReader();
+    });
+
+    // Toggle de navegación por voz
+    document.getElementById('voice-nav-toggle').addEventListener('click', function() {
+        toggleVoiceNavigation();
+    });
+
+    // Mostrar atajos de teclado
+    document.getElementById('keyboard-shortcuts-btn').addEventListener('click', function() {
+        showKeyboardShortcuts();
+    });
+
+    // Botones de prueba
+    document.getElementById('test-accessibility').addEventListener('click', function() {
+        runAccessibilityTests();
+    });
+
+    document.getElementById('test-screen-reader').addEventListener('click', function() {
+        testScreenReader();
+    });
+
+    document.getElementById('test-voice-nav').addEventListener('click', function() {
+        testVoiceNavigation();
+    });
+
+    document.getElementById('reset-all').addEventListener('click', function() {
+        resetAllSettings();
+    });
+}
+
+async function loadCurrentSettings() {
+    try {
+        const response = await fetch('/api/accessibility/settings');
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            updateUI(data.data);
+        }
+    } catch (error) {
+        console.error('Error cargando configuración:', error);
+    }
+}
+
+async function setContrastMode(mode) {
+    try {
+        const response = await fetch('/api/accessibility/contrast-mode', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mode: mode })
+        });
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+            updateContrastUI(mode);
+            announceChange(`Modo de contraste cambiado a ${mode}`);
+        }
+    } catch (error) {
+        console.error('Error cambiando contraste:', error);
+    }
+}
+
+async function setFontSize(size) {
+    try {
+        const response = await fetch('/api/accessibility/font-size', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ size: size })
+        });
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+            updateFontSizeUI(size);
+            announceChange(`Tamaño de fuente cambiado a ${size}`);
+        }
+    } catch (error) {
+        console.error('Error cambiando tamaño de fuente:', error);
+    }
+}
+
+async function toggleScreenReader() {
+    const btn = document.getElementById('screen-reader-toggle');
+    const isEnabled = btn.getAttribute('aria-pressed') === 'true';
+    const newState = !isEnabled;
+    
+    try {
+        const response = await fetch('/api/accessibility/screen-reader', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ enabled: newState })
+        });
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+            btn.setAttribute('aria-pressed', newState);
+            btn.classList.toggle('active', newState);
+            document.getElementById('current-screen-reader').textContent = newState ? 'Activado' : 'Desactivado';
+            announceChange(`Lector de pantalla ${newState ? 'activado' : 'desactivado'}`);
+        }
+    } catch (error) {
+        console.error('Error toggle screen reader:', error);
+    }
+}
+
+async function toggleVoiceNavigation() {
+    const btn = document.getElementById('voice-nav-toggle');
+    const isEnabled = btn.getAttribute('aria-pressed') === 'true';
+    const newState = !isEnabled;
+    
+    try {
+        // Verificar permisos de micrófono primero
+        if (newState && !await checkMicrophonePermission()) {
+            announceChange('Permiso de micrófono requerido para navegación por voz');
+            return;
+        }
+        
+        btn.setAttribute('aria-pressed', newState);
+        btn.classList.toggle('active', newState);
+        document.getElementById('current-voice-nav').textContent = newState ? 'Activado' : 'Desactivado';
+        announceChange(`Navegación por voz ${newState ? 'activada' : 'desactivada'}`);
+        
+        // Usar el AccessibilityManager global
+        if (window.accessibilityManager) {
+            if (newState) {
+                window.accessibilityManager.startVoiceRecognition();
+            } else {
+                window.accessibilityManager.stopVoiceRecognition();
+            }
+        }
+    } catch (error) {
+        console.error('Error toggle voice navigation:', error);
+    }
+}
+
+async function checkMicrophonePermission() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+async function runAccessibilityTests() {
+    const resultsDiv = document.getElementById('test-results');
+    resultsDiv.className = 'test-results loading';
+    resultsDiv.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Ejecutando pruebas de accesibilidad...</p>';
+    
+    try {
+        const response = await fetch('/api/accessibility/test');
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            resultsDiv.className = 'test-results success';
+            resultsDiv.innerHTML = `
+                <h4>Pruebas Completadas</h4>
+                <p><strong>Total:</strong> ${data.summary.total_tests}</p>
+                <p><strong>Exitosas:</strong> ${data.summary.successful}</p>
+                <p><strong>Fallidas:</strong> ${data.summary.failed}</p>
+                <div class="test-details">
+                    ${data.tests.map(test => `
+                        <div class="test-item ${test.status}">
+                            <strong>${test.test}:</strong> ${test.status}
+                            ${test.error ? `<br><small>Error: ${test.error}</small>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        resultsDiv.className = 'test-results error';
+        resultsDiv.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+    }
+}
+
+function testScreenReader() {
+    if (window.accessibilityManager) {
+        window.accessibilityManager.speak('Prueba de lector de pantalla. Si puede escuchar este mensaje, el lector de pantalla está funcionando correctamente.');
+        announceChange('Prueba de lector de pantalla ejecutada');
+    }
+}
+
+function testVoiceNavigation() {
+    announceChange('Prueba de navegación por voz. Diga "ir dashboard" para probar el reconocimiento de voz.');
+}
+
+function resetAllSettings() {
+    if (window.accessibilityManager) {
+        window.accessibilityManager.resetSettings();
+        location.reload();
+    }
+}
+
+function updateUI(settings) {
+    // Actualizar estado visual
+    document.getElementById('current-contrast').textContent = getContrastLabel(settings.contrast_mode);
+    document.getElementById('current-font-size').textContent = getFontSizeLabel(settings.font_size);
+    document.getElementById('current-screen-reader').textContent = settings.screen_reader_enabled ? 'Activado' : 'Desactivado';
+    document.getElementById('current-voice-nav').textContent = settings.voice_navigation_enabled ? 'Activado' : 'Desactivado';
+    
+    // Actualizar botones
+    updateContrastUI(settings.contrast_mode);
+    updateFontSizeUI(settings.font_size);
+    
+    // Actualizar toggles
+    const screenReaderBtn = document.getElementById('screen-reader-toggle');
+    screenReaderBtn.setAttribute('aria-pressed', settings.screen_reader_enabled);
+    screenReaderBtn.classList.toggle('active', settings.screen_reader_enabled);
+    
+    const voiceNavBtn = document.getElementById('voice-nav-toggle');
+    voiceNavBtn.setAttribute('aria-pressed', settings.voice_navigation_enabled);
+    voiceNavBtn.classList.toggle('active', settings.voice_navigation_enabled);
+}
+
+function updateContrastUI(mode) {
+    document.querySelectorAll('[data-contrast]').forEach(btn => {
+        const isActive = btn.dataset.contrast === mode;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-checked', isActive);
+    });
+    document.getElementById('current-contrast').textContent = getContrastLabel(mode);
+}
+
+function updateFontSizeUI(size) {
+    document.querySelectorAll('[data-font]').forEach(btn => {
+        const isActive = btn.dataset.font === size;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-checked', isActive);
+    });
+    document.getElementById('current-font-size').textContent = getFontSizeLabel(size);
+}
+
+function getContrastLabel(mode) {
+    const labels = {
+        'normal': 'Normal',
+        'high': 'Alto Contraste',
+        'yellow-black': 'Amarillo/Negro',
+        'blue-white': 'Azul/Blanco'
+    };
+    return labels[mode] || mode;
+}
+
+function getFontSizeLabel(size) {
+    const labels = {
+        'small': 'Pequeño',
+        'medium': 'Normal',
+        'large': 'Grande',
+        'extra-large': 'Muy Grande'
+    };
+    return labels[size] || size;
+}
+
+function showKeyboardShortcuts() {
+    if (window.accessibilityManager) {
+        window.accessibilityManager.showKeyboardHelp();
+    }
+}
+
+function announceChange(message) {
+    const announcements = document.getElementById('accessibility-announcements');
+    announcements.textContent = message;
+    
+    // Limpiar después de 3 segundos
+    setTimeout(() => {
+        announcements.textContent = '';
+    }, 3000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,324 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Síntesis de Voz en Español</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-card {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #005a87;
+        }
+        .voice-info {
+            background: #e8f4f8;
+            border-left: 4px solid #007cba;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .console-output {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎤 Prueba de Síntesis de Voz en Español</h1>
+    
+    <div class="test-card">
+        <h2>Información del Navegador</h2>
+        <div id="browser-info"></div>
+    </div>
+    
+    <div class="test-card">
+        <h2>Voces Disponibles</h2>
+        <div id="voices-info"></div>
+        <button class="test-button" onclick="analyzeVoices()">🔍 Analizar Voces</button>
+    </div>
+    
+    <div class="test-card">
+        <h2>Pruebas de Pronunciación</h2>
+        <p>Pruebe diferentes tipos de texto para verificar la pronunciación en español:</p>
+        
+        <button class="test-button" onclick="testBasicSpanish()">🔤 Texto Básico</button>
+        <button class="test-button" onclick="testAccents()">🔤 Acentos y Ñ</button>
+        <button class="test-button" onclick="testNumbers()">🔢 Números</button>
+        <button class="test-button" onclick="testTechnical()">🔬 Términos Técnicos</button>
+        <button class="test-button" onclick="testLongText()">📖 Texto Largo</button>
+        
+        <div>
+            <br>
+            <label for="custom-text">Texto personalizado:</label>
+            <br>
+            <textarea id="custom-text" rows="3" cols="50" placeholder="Escriba aquí el texto que desea probar..."></textarea>
+            <br>
+            <button class="test-button" onclick="testCustomText()">🗣️ Probar Texto Personalizado</button>
+        </div>
+    </div>
+    
+    <div class="test-card">
+        <h2>Control de Síntesis</h2>
+        <button class="test-button" onclick="stopSpeech()">⏹️ Detener</button>
+        <button class="test-button" onclick="pauseSpeech()">⏸️ Pausar</button>
+        <button class="test-button" onclick="resumeSpeech()">▶️ Reanudar</button>
+    </div>
+    
+    <div class="console-output" id="console-output">
+        <div>🖥️ Consola de depuración:</div>
+    </div>
+
+    <script>
+        // Variables globales
+        let speechSynthesis = window.speechSynthesis;
+        let currentUtterance = null;
+        
+        // Función de logging
+        function log(message) {
+            const output = document.getElementById('console-output');
+            const div = document.createElement('div');
+            div.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+        
+        // Información del navegador
+        function displayBrowserInfo() {
+            const info = document.getElementById('browser-info');
+            info.innerHTML = `
+                <div class="voice-info">
+                    <strong>Navegador:</strong> ${navigator.userAgent}<br>
+                    <strong>Idioma:</strong> ${navigator.language}<br>
+                    <strong>Idiomas:</strong> ${navigator.languages.join(', ')}<br>
+                    <strong>Síntesis de voz disponible:</strong> ${speechSynthesis ? 'Sí' : 'No'}
+                </div>
+            `;
+        }
+        
+        // Análisis de voces
+        function analyzeVoices() {
+            if (!speechSynthesis) {
+                log('❌ Síntesis de voz no disponible');
+                return;
+            }
+            
+            const voices = speechSynthesis.getVoices();
+            log(`📋 Analizando ${voices.length} voces disponibles...`);
+            
+            // Mostrar todas las voces
+            console.table(voices.map(voice => ({
+                name: voice.name,
+                lang: voice.lang,
+                localService: voice.localService,
+                default: voice.default
+            })));
+            
+            // Clasificar voces en español
+            const spanishVoices = voices.filter(voice => {
+                const lang = voice.lang.toLowerCase();
+                const name = voice.name.toLowerCase();
+                return lang.startsWith('es') || 
+                       name.includes('spanish') || 
+                       name.includes('español') ||
+                       name.includes('castilian') ||
+                       name.includes('castellano');
+            });
+            
+            const nativeSpanishVoices = spanishVoices.filter(voice => voice.localService);
+            const onlineSpanishVoices = spanishVoices.filter(voice => !voice.localService);
+            
+            // Mostrar información
+            const info = document.getElementById('voices-info');
+            info.innerHTML = `
+                <div class="voice-info">
+                    <strong>Total de voces:</strong> ${voices.length}<br>
+                    <strong>Voces en español:</strong> ${spanishVoices.length}<br>
+                    <strong>Voces nativas en español:</strong> ${nativeSpanishVoices.length}<br>
+                    <strong>Voces en línea en español:</strong> ${onlineSpanishVoices.length}
+                </div>
+                
+                ${spanishVoices.length > 0 ? `
+                <h3>Voces en Español Disponibles:</h3>
+                <ul>
+                    ${spanishVoices.map(voice => 
+                        `<li><strong>${voice.name}</strong> (${voice.lang}) - ${voice.localService ? 'Nativa' : 'En línea'} ${voice.default ? '- Por defecto' : ''}</li>`
+                    ).join('')}
+                </ul>
+                ` : '<p style="color: red;">⚠️ No se encontraron voces en español</p>'}
+            `;
+            
+            log(`✅ Análisis completado: ${spanishVoices.length} voces en español de ${voices.length} totales`);
+        }
+        
+        // Función de síntesis mejorada
+        function speak(text, testName = '') {
+            if (!speechSynthesis) {
+                log('❌ Síntesis de voz no disponible');
+                return;
+            }
+            
+            // Cancelar speech anterior
+            speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            currentUtterance = utterance;
+            
+            // Configurar parámetros
+            utterance.rate = 0.8;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            // Obtener voces
+            const voices = speechSynthesis.getVoices();
+            let selectedVoice = null;
+            
+            // Buscar voces en español (estrategia mejorada)
+            const nativeSpanishVoices = voices.filter(voice => {
+                const lang = voice.lang.toLowerCase();
+                const name = voice.name.toLowerCase();
+                return (
+                    lang === 'es-es' || lang === 'es-mx' || lang === 'es-ar' || 
+                    lang === 'es-co' || lang === 'es-pe' || lang === 'es-ve' ||
+                    lang === 'es-cl' || lang === 'es-uy' || lang === 'es-ec' ||
+                    name.includes('español') || name.includes('castilian') ||
+                    name.includes('castellano') || name.includes('spain') ||
+                    name.includes('mexico') || name.includes('argentina') ||
+                    name.includes('colombia')
+                ) && voice.localService;
+            });
+            
+            const anySpanishVoices = voices.filter(voice => 
+                voice.lang.toLowerCase().startsWith('es')
+            );
+            
+            const nameBasedSpanishVoices = voices.filter(voice => {
+                const name = voice.name.toLowerCase();
+                return name.includes('spanish') || name.includes('español') ||
+                       name.includes('maria') || name.includes('jorge') ||
+                       name.includes('carmen') || name.includes('diego');
+            });
+            
+            // Seleccionar voz
+            if (nativeSpanishVoices.length > 0) {
+                selectedVoice = nativeSpanishVoices[0];
+                utterance.lang = selectedVoice.lang;
+                log(`🗣️ ${testName}: Usando voz nativa: ${selectedVoice.name} (${selectedVoice.lang})`);
+            } else if (anySpanishVoices.length > 0) {
+                selectedVoice = anySpanishVoices[0];
+                utterance.lang = selectedVoice.lang;
+                log(`🗣️ ${testName}: Usando voz español: ${selectedVoice.name} (${selectedVoice.lang})`);
+            } else if (nameBasedSpanishVoices.length > 0) {
+                selectedVoice = nameBasedSpanishVoices[0];
+                utterance.lang = 'es-ES';
+                log(`🗣️ ${testName}: Usando voz por nombre: ${selectedVoice.name} (forzando es-ES)`);
+            } else {
+                utterance.lang = 'es-ES';
+                log(`⚠️ ${testName}: Sin voces en español, forzando es-ES`);
+            }
+            
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+            
+            // Eventos
+            utterance.onstart = () => log(`🎤 ${testName}: Iniciando síntesis...`);
+            utterance.onend = () => log(`✅ ${testName}: Síntesis completada`);
+            utterance.onerror = (event) => log(`❌ ${testName}: Error - ${event.error}`);
+            
+            // Hablar
+            speechSynthesis.speak(utterance);
+        }
+        
+        // Pruebas específicas
+        function testBasicSpanish() {
+            speak('Hola, mi nombre es el asistente de accesibilidad de Learning Agent Web. Estoy aquí para ayudarte.', 'Texto Básico');
+        }
+        
+        function testAccents() {
+            speak('La niña come piña en España. José María y Ángel están en Bogotá con mamá y papá.', 'Acentos y Ñ');
+        }
+        
+        function testNumbers() {
+            speak('Los números del uno al diez: uno, dos, tres, cuatro, cinco, seis, siete, ocho, nueve, diez. El año es dos mil veinticuatro.', 'Números');
+        }
+        
+        function testTechnical() {
+            speak('Herramientas de accesibilidad: síntesis de voz, reconocimiento de voz, lector de pantalla, navegación por teclado, alto contraste.', 'Términos Técnicos');
+        }
+        
+        function testLongText() {
+            speak('El Living Lab de UNIMINUTO está desarrollando herramientas de accesibilidad para personas con discapacidad visual. Nuestro objetivo es crear una experiencia web inclusiva que permita a todos los usuarios acceder a la información de manera efectiva. Las herramientas incluyen síntesis de voz en español, reconocimiento de comandos por voz, ajustes de contraste y tamaño de fuente, navegación por teclado, y descripciones de audio para contenido multimedia.', 'Texto Largo');
+        }
+        
+        function testCustomText() {
+            const text = document.getElementById('custom-text').value;
+            if (text.trim()) {
+                speak(text, 'Texto Personalizado');
+            } else {
+                log('⚠️ Por favor ingrese texto personalizado');
+            }
+        }
+        
+        function stopSpeech() {
+            speechSynthesis.cancel();
+            log('⏹️ Síntesis detenida');
+        }
+        
+        function pauseSpeech() {
+            speechSynthesis.pause();
+            log('⏸️ Síntesis pausada');
+        }
+        
+        function resumeSpeech() {
+            speechSynthesis.resume();
+            log('▶️ Síntesis reanudada');
+        }
+        
+        // Inicialización
+        window.addEventListener('load', () => {
+            log('🚀 Iniciando prueba de síntesis de voz...');
+            displayBrowserInfo();
+            
+            // Esperar a que las voces estén disponibles
+            setTimeout(() => {
+                analyzeVoices();
+            }, 1000);
+            
+            // También escuchar cambios de voces
+            if (speechSynthesis.addEventListener) {
+                speechSynthesis.addEventListener('voiceschanged', analyzeVoices);
+            }
+        });
+    </script>
+</body>
+</html>
