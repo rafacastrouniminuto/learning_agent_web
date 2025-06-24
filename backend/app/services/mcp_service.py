@@ -76,22 +76,43 @@ if MCP_AVAILABLE and mcp_server:
         limit: int = 10
     ) -> List[Dict[str, Any]]:
         """Buscar módulos de aprendizaje por tema, dificultad y eje temático"""
+        print(f"🔍 Búsqueda iniciada - Topic: '{topic}', Difficulty: '{difficulty}', Eje: '{eje_tematico}', Limit: {limit}")
+        print(f"📊 Total módulos disponibles: {len(modules_data)}")
+        
         results = []
         topic_lower = topic.lower() if topic else ""
         
-        for module in modules_data:
+        for i, module in enumerate(modules_data):
+            print(f"  📋 Módulo {i+1}: '{module.get('nombre', '')}' - Eje: '{module.get('eje_tematico', '')}'")
+            
             # Filter by topic (search in name and description)
-            if topic_lower and topic_lower not in module.get('nombre', '').lower() and topic_lower not in module.get('descripcion', '').lower():
-                continue
+            if topic_lower:
+                nombre_match = topic_lower in module.get('nombre', '').lower()
+                desc_match = topic_lower in module.get('descripcion', '').lower()
+                eje_match = topic_lower in module.get('eje_tematico', '').lower()
+                
+                print(f"    🔎 Buscar '{topic_lower}' en:")
+                print(f"      - Nombre: '{module.get('nombre', '')}' -> {nombre_match}")
+                print(f"      - Descripción: '{module.get('descripcion', '')}' -> {desc_match}")
+                print(f"      - Eje temático: '{module.get('eje_tematico', '')}' -> {eje_match}")
+                
+                if not (nombre_match or desc_match or eje_match):
+                    print(f"    ❌ No coincide con el tema")
+                    continue
+                else:
+                    print(f"    ✅ Coincide con el tema")
                 
             # Filter by difficulty
             if difficulty != "all" and module.get('nivel_dificultad', '').lower() != difficulty.lower():
+                print(f"    ❌ No coincide con dificultad: {module.get('nivel_dificultad', '')} != {difficulty}")
                 continue
                 
             # Filter by thematic axis
             if eje_tematico != "all" and module.get('eje_tematico', '').lower() != eje_tematico.lower():
+                print(f"    ❌ No coincide con eje temático: {module.get('eje_tematico', '')} != {eje_tematico}")
                 continue
             
+            print(f"    ✅ Módulo agregado a resultados")
             results.append({
                 "id": module.get('id', ''),
                 "nombre": module.get('nombre', ''),
@@ -109,6 +130,7 @@ if MCP_AVAILABLE and mcp_server:
             if len(results) >= limit:
                 break
         
+        print(f"🎯 Resultados finales: {len(results)} módulos encontrados")
         return results
 
     @mcp_server.tool()
