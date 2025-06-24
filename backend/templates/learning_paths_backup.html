@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Rutas de Aprendizaje - Living Lab UNIMINUTO{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-route" style="margin-right: 12px;"></i>
+            Tus Rutas de Aprendizaje
+        </h1>
+        <p class="text-muted">
+            Explora y gestiona las rutas de aprendizaje creadas específicamente para ti
+        </p>
+    </div>
+</div>
+
+<!-- Placeholder for future learning paths -->
+<div class="card" style="margin-top: 20px;">
+    <div style="text-align: center; padding: 60px 20px;">
+        <div style="font-size: 4rem; margin-bottom: 24px; color: var(--muted-text);">
+            <i class="fas fa-map-marked-alt"></i>
+        </div>
+        <h3 style="margin-bottom: 16px; color: var(--light-text);">
+            Aún no tienes rutas de aprendizaje
+        </h3>
+        <p class="text-muted" style="margin-bottom: 24px; max-width: 500px; margin-left: auto; margin-right: auto;">
+            Las rutas de aprendizaje aparecerán aquí después de que converses con nuestro agente de IA. 
+            Cada ruta será personalizada según tus objetivos, nivel y preferencias.
+        </p>
+        <button class="btn btn-primary" onclick="window.location.href='/chat'">
+            <i class="fas fa-comments"></i>
+            Crear mi primera ruta
+        </button>
+    </div>
+</div>
+
+<!-- Future learning path template -->
+<div class="card hidden" style="margin-top: 20px;" id="learningPathTemplate">
+    <div class="card-header">
+        <h3 class="card-title">Desarrollo Web Full Stack</h3>
+        <div style="display: flex; gap: 12px; margin-top: 12px;">
+            <span style="background: var(--primary-purple); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;">
+                <i class="fas fa-clock"></i> 8 semanas
+            </span>
+            <span style="background: var(--accent-cyan); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;">
+                <i class="fas fa-signal"></i> Intermedio
+            </span>
+            <span style="background: var(--accent-pink); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem;">
+                <i class="fas fa-percentage"></i> 0% Completado
+            </span>
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h4 style="color: var(--primary-blue); margin-bottom: 12px;">
+                    <i class="fas fa-list-ol"></i> Módulos
+                </h4>
+                <div style="space-y: 8px;">
+                    <div style="padding: 12px; background: var(--dark-bg); border-radius: 8px; margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>1. Fundamentos de HTML/CSS</span>
+                            <span style="color: var(--accent-cyan); font-size: 0.8rem;">
+                                <i class="fas fa-check-circle"></i> Completado
+                            </span>
+                        </div>
+                    </div>
+                    <div style="padding: 12px; background: var(--dark-bg); border-radius: 8px; margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>2. JavaScript Interactivo</span>
+                            <span style="color: var(--primary-purple); font-size: 0.8rem;">
+                                <i class="fas fa-play-circle"></i> En progreso
+                            </span>
+                        </div>
+                    </div>
+                    <div style="padding: 12px; background: var(--dark-bg); border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>3. React Básico</span>
+                            <span style="color: var(--muted-text); font-size: 0.8rem;">
+                                <i class="fas fa-lock"></i> Bloqueado
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="color: var(--primary-purple); margin-bottom: 12px;">
+                    <i class="fas fa-trophy"></i> Progreso
+                </h4>
+                <div style="background: var(--dark-bg); padding: 20px; border-radius: 8px;">
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Progreso General</span>
+                            <span>25%</span>
+                        </div>
+                        <div style="height: 8px; background: var(--border-color); border-radius: 4px;">
+                            <div style="height: 100%; width: 25%; background: var(--gradient-main); border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: center;">
+                        <div>
+                            <div style="font-size: 1.5rem; font-weight: 600; color: var(--accent-cyan);">2</div>
+                            <div style="font-size: 0.8rem; color: var(--muted-text);">Módulos Completados</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.5rem; font-weight: 600; color: var(--primary-purple);">1</div>
+                            <div style="font-size: 0.8rem; color: var(--muted-text);">En Progreso</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+            <button class="btn btn-primary">
+                <i class="fas fa-play"></i>
+                Continuar Aprendiendo
+            </button>
+            <button class="btn btn-secondary">
+                <i class="fas fa-edit"></i>
+                Personalizar Ruta
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

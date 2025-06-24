@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Chat con IA - Living Lab UNIMINUTO{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-robot" style="margin-right: 12px;"></i>
+            Agente de Aprendizaje IA
+        </h1>
+        <p class="text-muted">
+            Conversa con nuestro agente especializado para crear tu ruta de aprendizaje personalizada
+        </p>
+    </div>
+    
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message assistant initial-message">
+                ¡Hola! 👋 Soy tu agente de aprendizaje del Living Lab UNIMINUTO. 
+                
+                Estoy aquí para ayudarte a crear una ruta de aprendizaje personalizada que se adapte a:
+                
+                • 🎯 Tus objetivos de aprendizaje
+                • 📚 Tu nivel de conocimiento actual  
+                • ⏱️ Tu disponibilidad de tiempo
+                • 🎨 Tu estilo de aprendizaje preferido
+                
+                ¿En qué área te gustaría enfocarte? Por ejemplo:
+                - Desarrollo web
+                - Inteligencia artificial
+                - Ciencia de datos
+                - Marketing digital
+                - Emprendimiento
+                - O cualquier otra área que te interese
+                
+                ¡Cuéntame sobre tus intereses y comenzamos! 🚀
+            </div>
+        </div>
+        
+        <div class="chat-input-area">
+            <form id="chatForm">
+                <textarea 
+                    id="chatInput" 
+                    class="chat-input" 
+                    placeholder="Escribe tu mensaje aquí..."
+                    rows="1"
+                    required
+                ></textarea>
+                <button type="submit" class="chat-send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-lightbulb" style="margin-right: 12px;"></i>
+            Consejos para una mejor experiencia
+        </h3>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 16px;">
+        <div>
+            <h4 style="color: var(--primary-purple); margin-bottom: 8px;">
+                <i class="fas fa-target" style="margin-right: 8px;"></i>
+                Sé específico con tus objetivos
+            </h4>
+            <p class="text-muted" style="font-size: 0.9rem;">
+                Mientras más detalles proporciones sobre lo que quieres aprender, mejor podrá personalizar tu ruta el agente.
+            </p>
+        </div>
+        
+        <div>
+            <h4 style="color: var(--primary-blue); margin-bottom: 8px;">
+                <i class="fas fa-clock" style="margin-right: 8px;"></i>
+                Menciona tu disponibilidad
+            </h4>
+            <p class="text-muted" style="font-size: 0.9rem;">
+                Indica cuánto tiempo puedes dedicar al aprendizaje para recibir recomendaciones realistas.
+            </p>
+        </div>
+        
+        <div>
+            <h4 style="color: var(--accent-cyan); margin-bottom: 8px;">
+                <i class="fas fa-brain" style="margin-right: 8px;"></i>
+                Comparte tu experiencia
+            </h4>
+            <p class="text-muted" style="font-size: 0.9rem;">
+                Cuéntanos qué conocimientos previos tienes para ajustar el nivel de dificultad adecuadamente.
+            </p>
+        </div>
+        
+        <div>
+            <h4 style="color: var(--accent-pink); margin-bottom: 8px;">
+                <i class="fas fa-heart" style="margin-right: 8px;"></i>
+                Expresa tus preferencias
+            </h4>
+            <p class="text-muted" style="font-size: 0.9rem;">
+                Dinos si prefieres videos, lecturas, práctica hands-on, o cualquier método de aprendizaje específico.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Auto-focus chat input when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.focus();
+    }
+    
+    // Handle Enter key in chat input
+    chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+        }
+    });
+});
+</script>
+{% endblock %}

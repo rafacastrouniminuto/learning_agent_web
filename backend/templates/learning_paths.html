@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Rutas de Aprendizaje - Living Lab{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="content-header">
+        <h1>📚 Rutas de Aprendizaje</h1>
+        <p>Explora tus rutas de aprendizaje personalizadas basadas en tus objetivos y nivel actual</p>
+    </div>
+
+    <!-- Generated Learning Path -->
+    <div id="generatedPath" class="learning-path-container" style="display: none;">
+        <div class="path-header">
+            <h2>🎯 Tu Ruta de Aprendizaje Personalizada</h2>
+            <p id="studentProfile" class="student-profile"></p>
+        </div>
+        
+        <div id="learningModules" class="modules-grid">
+            <!-- Modules will be dynamically inserted here -->
+        </div>
+        
+        <div class="path-footer">
+            <div class="next-steps">
+                <h3>📋 Próximos Pasos</h3>
+                <p id="nextSteps"></p>
+            </div>
+            <div class="learning-sequence">
+                <h3>🔄 Secuencia de Aprendizaje</h3>
+                <p id="learningSequence"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Default State -->
+    <div id="defaultState" class="default-state">
+        <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <h2>No tienes rutas de aprendizaje generadas</h2>
+            <p>Para crear tu ruta personalizada, ve al <strong>Chat con IA</strong> y conversa sobre tus objetivos de aprendizaje.</p>
+            <a href="/chat" class="btn btn-primary">
+                💬 Ir al Chat
+            </a>
+        </div>
+    </div>
+
+    <!-- Sample Paths (can be removed later) -->
+    <div class="sample-paths" style="margin-top: 40px;">
+        <h2>💡 Ejemplos de Rutas de Aprendizaje</h2>
+        <div class="modules-grid">
+            <div class="module-card sample">
+                <div class="module-header">
+                    <h3>Ecosistemas de Innovación Educativa</h3>
+                    <span class="priority alta">Alta Prioridad</span>
+                </div>
+                <p class="module-description">Fundamentos conceptuales y evolución del enfoque STEM</p>
+                <div class="module-footer">
+                    <span class="duration">⏱️ 3-4 semanas</span>
+                    <span class="status pending">Pendiente</span>
+                </div>
+            </div>
+            
+            <div class="module-card sample">
+                <div class="module-header">
+                    <h3>Aprendizaje Experiencial Integrado</h3>
+                    <span class="priority media">Media Prioridad</span>
+                </div>
+                <p class="module-description">Fundamentos constructivistas y socioconstructivistas</p>
+                <div class="module-footer">
+                    <span class="duration">⏱️ 2-3 semanas</span>
+                    <span class="status pending">Pendiente</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if there's a generated learning path
+    const generatedPath = sessionStorage.getItem('generatedLearningPath');
+    
+    if (generatedPath) {
+        try {
+            const pathData = JSON.parse(generatedPath);
+            displayLearningPath(pathData);
+        } catch (error) {
+            console.error('Error parsing learning path:', error);
+        }
+    }
+});
+
+function displayLearningPath(pathData) {
+    const generatedPathDiv = document.getElementById('generatedPath');
+    const defaultStateDiv = document.getElementById('defaultState');
+    const studentProfileEl = document.getElementById('studentProfile');
+    const nextStepsEl = document.getElementById('nextSteps');
+    const learningSequenceEl = document.getElementById('learningSequence');
+    const modulesContainer = document.getElementById('learningModules');
+    
+    // Hide default state and show generated path
+    defaultStateDiv.style.display = 'none';
+    generatedPathDiv.style.display = 'block';
+    
+    // Fill in the data
+    studentProfileEl.textContent = pathData.student_profile;
+    nextStepsEl.textContent = pathData.next_steps;
+    learningSequenceEl.textContent = pathData.learning_sequence;
+    
+    // Clear and populate modules
+    modulesContainer.innerHTML = '';
+    
+    pathData.modules.forEach(module => {
+        const moduleCard = createModuleCard(module);
+        modulesContainer.appendChild(moduleCard);
+    });
+}
+
+function createModuleCard(module) {
+    const card = document.createElement('div');
+    card.className = 'module-card generated';
+    card.innerHTML = `
+        <div class="module-header">
+            <h3>${module.title}</h3>
+            <span class="priority ${module.priority}">${getPriorityText(module.priority)}</span>
+        </div>
+        <div class="module-content">
+            <p class="module-description">${module.justification}</p>
+            <p class="module-competencia"><strong>Competencia:</strong> ${module.competencia}</p>
+        </div>
+        <div class="module-footer">
+            <span class="duration">⏱️ ${module.duration}</span>
+            <span class="status ${module.status}">Pendiente</span>
+        </div>
+        <div class="module-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${module.progress}%"></div>
+            </div>
+            <span class="progress-text">${module.progress}% completado</span>
+        </div>
+    `;
+    return card;
+}
+
+function getPriorityText(priority) {
+    const priorities = {
+        'alta': 'Alta Prioridad',
+        'media': 'Media Prioridad', 
+        'baja': 'Baja Prioridad'
+    };
+    return priorities[priority] || 'Media Prioridad';
+}
+</script>
+{% endblock %}

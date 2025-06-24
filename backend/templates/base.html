@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Living Lab UNIMINUTO - Agente de Aprendizaje{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% block body %}
+    <div class="main-container">
+        <!-- Botón toggle siempre visible -->
+        <button class="sidebar-toggle" id="sidebarToggle">←</button>
+        
+        {% block sidebar %}
+        <nav class="sidebar" id="sidebar">
+            <div class="nav-menu">
+                <div class="nav-brand">
+                    <div class="nav-brand-logo">LL</div>
+                    <div class="nav-brand-text">Living Lab</div>
+                </div>
+                
+                <a href="/dashboard" class="nav-item {% if request.url.path == '/dashboard' %}active{% endif %}">
+                    <i class="nav-icon fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                
+                <a href="/chat" class="nav-item {% if request.url.path == '/chat' %}active{% endif %}">
+                    <i class="nav-icon fas fa-comments"></i>
+                    <span>Chat con IA</span>
+                </a>
+                
+                <a href="/learning-paths" class="nav-item {% if request.url.path == '/learning-paths' %}active{% endif %}">
+                    <i class="nav-icon fas fa-route"></i>
+                    <span>Rutas de Aprendizaje</span>
+                </a>
+                
+                <a href="/mcp-tools" class="nav-item {% if request.url.path == '/mcp-tools' %}active{% endif %}">
+                    <i class="nav-icon fas fa-tools"></i>
+                    <span>Herramientas MCP</span>
+                </a>
+                
+                <a href="/profile" class="nav-item {% if request.url.path == '/profile' %}active{% endif %}">
+                    <i class="nav-icon fas fa-user"></i>
+                    <span>Mi Perfil</span>
+                </a>
+                
+                <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                    <a href="#" onclick="learningAgent.logout()" class="nav-item">
+                        <i class="nav-icon fas fa-sign-out-alt"></i>
+                        <span>Cerrar Sesión</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        {% endblock %}
+        
+        <main class="content-area">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% endblock %}
+    
+    <!-- Scripts -->
+    <script src="/static/js/main.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
