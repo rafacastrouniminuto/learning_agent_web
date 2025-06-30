@@ -112,6 +112,11 @@ async def accessibility_page(request: Request):
     """Accessibility tools page"""
     return templates.TemplateResponse("accessibility.html", {"request": request})
 
+@app.get("/virtual-lab", response_class=HTMLResponse)
+async def virtual_lab_page(request: Request):
+    """Virtual Lab 3D tour page"""
+    return templates.TemplateResponse("virtual_lab.html", {"request": request})
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():

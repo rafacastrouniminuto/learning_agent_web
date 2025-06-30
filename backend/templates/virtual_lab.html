@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Visita Virtual Living Lab - UNIMINUTO{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="/static/css/virtual-lab.css">
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+{% endblock %}
+
+{% block content %}
+        <div class="virtual-lab-container">
+            <div class="virtual-lab-header">
+                <h1 class="page-title">
+                    <i class="fas fa-cube"></i>
+                    Visita Virtual del Living Lab
+                </h1>
+                <p class="page-subtitle">
+                    Explora nuestro espacio de innovación en 3D
+                </p>
+            </div>
+            
+            <!-- Controles de la experiencia 3D -->
+            <div class="lab-controls">
+                <div class="control-panel">
+                    <button id="resetCamera" class="control-btn">
+                        <i class="fas fa-home"></i>
+                        Vista Inicial
+                    </button>
+                    <button id="topView" class="control-btn">
+                        <i class="fas fa-eye"></i>
+                        Vista Superior
+                    </button>
+                    <button id="walkthrough" class="control-btn">
+                        <i class="fas fa-walking"></i>
+                        Tour Guiado
+                    </button>
+                    <button id="toggleInfo" class="control-btn active">
+                        <i class="fas fa-info-circle"></i>
+                        Información
+                    </button>
+                </div>
+                
+                <div class="lab-info" id="labInfo">
+                    <h3>Cómo navegar:</h3>
+                    <ul>
+                        <li><strong>Ratón:</strong> Mantén clic y arrastra para rotar</li>
+                        <li><strong>Scroll:</strong> Acerca o aleja la vista</li>
+                        <li><strong>Clic derecho:</strong> Arrastra para mover la cámara</li>
+                        <li><strong>Hover:</strong> Pasa sobre los objetos para información</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Contenedor del canvas 3D -->
+            <div id="lab3d" class="lab-canvas"></div>
+            
+            <!-- Panel de información de objetos -->
+            <div id="objectInfo" class="object-info hidden">
+                <div class="info-content">
+                    <h3 id="objectTitle">Objeto</h3>
+                    <p id="objectDescription">Descripción del objeto</p>
+                    <button id="closeInfo" class="close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Loading screen -->
+            <div id="loadingScreen" class="loading-screen">
+                <div class="loading-content">
+                    <div class="spinner"></div>
+                    <h3>Cargando Living Lab...</h3>
+                    <p>Preparando la experiencia 3D</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+{% endblock %}
+
+{% block extra_js %}
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- Virtual Lab Script -->
+    <script src="/static/js/virtual-lab.js"></script>
+    
+    <script>
+        console.log('Initializing Virtual Lab...');
+        
+        // Wait for page to load completely
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, checking THREE.js...');
+            
+            // Wait a bit for THREE.js to fully load
+            setTimeout(() => {
+                if (typeof THREE !== 'undefined') {
+                    console.log('THREE.js loaded, starting Virtual Lab');
+                    window.virtualLab = new VirtualLab();
+                } else {
+                    console.error('THREE.js failed to load');
+                    // Show error message
+                    const container = document.getElementById('lab3d');
+                    if (container) {
+                        container.innerHTML = `
+                            <div style="display: flex; justify-content: center; align-items: center; height: 100%; background: #1a1a2e; color: white;">
+                                <div style="text-align: center; padding: 20px;">
+                                    <h3>⚠️ Error de conexión</h3>
+                                    <p>No se pudo cargar la librería 3D. Verifique su conexión a internet.</p>
+                                    <button onclick="location.reload()" style="margin-top: 10px; padding: 10px 20px; background: #6c5ce7; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                        Recargar página
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }, 500);
+        });
+    </script>
+{% endblock %}
