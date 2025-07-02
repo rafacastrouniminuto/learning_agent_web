@@ -1,0 +1,180 @@
+<mxfile host="app.diagrams.net" modified="2025-07-02T00:00:00.000Z" agent="5.0" etag="database_schema" version="24.2.5" type="device">
+  <diagram name="Database Schema" id="database-schema">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Learning Agent Web - Database Schema" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="569" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Users Table -->
+        <mxCell id="users-table" value="" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="200" y="100" width="280" height="300" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="users-title" value="👥 USERS" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="users-table">
+          <mxGeometry y="40" width="280" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="users-separator" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="users-table">
+          <mxGeometry y="70" width="280" height="8" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-id" value="🔑 id: UUID (Primary Key)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontStyle=1;" vertex="1" parent="users-table">
+          <mxGeometry y="78" width="280" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-email" value="📧 email: String (Unique)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="users-table">
+          <mxGeometry y="104" width="280" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-password" value="🔒 hashed_password: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="users-table">
+          <mxGeometry y="130" width="280" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-first-name" value="👤 first_name: String (Optional)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="users-table">
+          <mxGeometry y="156" width="280" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-last-name" value="👤 last_name: String (Optional)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="users-table">
+          <mxGeometry y="182" width="280" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-is-active" value="✅ is_active: Boolean (Default: True)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="users-table">
+          <mxGeometry y="208" width="280" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-created-at" value="📅 created_at: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="users-table">
+          <mxGeometry y="234" width="280" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-updated-at" value="🔄 updated_at: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="users-table">
+          <mxGeometry y="260" width="280" height="26" as="geometry" />
+        </mxCell>
+        
+        <!-- Learning Paths Table -->
+        <mxCell id="learning-paths-table" value="" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="600" y="100" width="300" height="360" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="learning-paths-title" value="🎯 LEARNING_PATHS" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="40" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="learning-paths-separator" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="70" width="300" height="8" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lp-id" value="🔑 id: UUID (Primary Key)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontStyle=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="78" width="300" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lp-user-id" value="👤 user_id: UUID (Foreign Key -> Users)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontStyle=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="104" width="300" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lp-title" value="📚 title: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="130" width="300" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lp-description" value="📝 description: Text" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="156" width="300" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lp-difficulty" value="⭐ difficulty_level: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="182" width="300" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lp-duration" value="⏱️ estimated_duration: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="208" width="300" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lp-content" value="📋 content: JSON" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="234" width="300" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lp-status" value="🔄 status: String (Draft/Active/Completed)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="260" width="300" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lp-created-at" value="📅 created_at: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="286" width="300" height="26" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="lp-updated-at" value="🔄 updated_at: DateTime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-paths-table">
+          <mxGeometry y="312" width="300" height="26" as="geometry" />
+        </mxCell>
+        
+        <!-- CSV Data Sources -->
+        <mxCell id="csv-container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="200" y="520" width="700" height="180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="csv-title" value="📄 CSV DATA SOURCES (Read-Only)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="220" y="530" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="learning-modules-csv" value="" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="240" y="570" width="300" height="110" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="csv-modules-title" value="📚 learning_modules.csv" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="learning-modules-csv">
+          <mxGeometry y="30" width="300" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="csv-module" value="• modulo: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-modules-csv">
+          <mxGeometry y="50" width="300" height="15" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="csv-competencia" value="• competencia: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-modules-csv">
+          <mxGeometry y="65" width="300" height="15" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="csv-eje" value="• eje_tematico: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-modules-csv">
+          <mxGeometry y="80" width="300" height="15" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="csv-preguntas" value="• preguntas: Text" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="learning-modules-csv">
+          <mxGeometry y="95" width="300" height="15" as="geometry" />
+        </mxCell>
+        
+        <!-- External APIs -->
+        <mxCell id="external-apis" value="" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="580" y="570" width="280" height="110" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="external-apis-title" value="🌐 EXTERNAL APIS" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="external-apis">
+          <mxGeometry y="30" width="280" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="openai-api-ref" value="🤖 OpenAI API (GPT-4)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="external-apis">
+          <mxGeometry y="50" width="280" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mcp-integration-ref" value="🔌 MCP FastMCP SDK" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="external-apis">
+          <mxGeometry y="70" width="280" height="20" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="three-js-ref" value="🎮 Three.js (3D Virtual Lab)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;points=[];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="external-apis">
+          <mxGeometry y="90" width="280" height="20" as="geometry" />
+        </mxCell>
+        
+        <!-- Relationship Arrow -->
+        <mxCell id="relationship-arrow" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d79b00;" edge="1" parent="1" source="users-table" target="learning-paths-table">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="520" y="300" as="sourcePoint" />
+            <mxPoint x="570" y="250" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="relationship-label" value="One-to-Many&#xa;(1 User → N Learning Paths)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="490" y="220" width="120" height="40" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

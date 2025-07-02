@@ -1,0 +1,156 @@
+<mxfile host="app.diagrams.net" modified="2025-07-02T00:00:00.000Z" agent="5.0" etag="mcp_components" version="24.2.5" type="device">
+  <diagram name="MCP Components" id="mcp-components">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Learning Agent Web - Arquitectura MCP (Model Context Protocol)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="20" width="769" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- FastMCP SDK -->
+        <mxCell id="fastmcp-container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d0cece;strokeColor=#56517e;strokeWidth=3;" vertex="1" parent="1">
+          <mxGeometry x="80" y="100" width="1000" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="fastmcp-title" value="🔌 FastMCP SDK - Model Context Protocol Integration" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="110" width="500" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="fastmcp-description" value="• Protocol estándar para comunicación entre aplicaciones y herramientas de IA&#xa;• Permite exponer herramientas como funciones que puede llamar la IA&#xa;• Maneja serialización, validación y ejecución de herramientas" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="100" y="140" width="800" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- MCP Service -->
+        <mxCell id="mcp-service-container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="260" width="1000" height="140" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mcp-service-title" value="🛠️ MCP Service (mcp_service.py)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="270" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- MCP Tools -->
+        <mxCell id="search-tool" value="🔍 search_learning_modules&#xa;• Buscar módulos en CSV&#xa;• Filtros: tema, dificultad, eje&#xa;• Retorna resultados paginados" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="120" y="310" width="200" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="contrast-tool" value="🎨 adjust_contrast&#xa;• Cambiar contraste de la UI&#xa;• Niveles: alto, medio, normal&#xa;• Aplicar CSS dinámicamente" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="340" y="310" width="200" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="font-tool" value="📝 change_font_size&#xa;• Ajustar tamaño de fuente&#xa;• Tamaños: pequeño a extra grande&#xa;• Persistir preferencias" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="560" y="310" width="200" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="screen-reader-tool" value="📢 screen_reader_announce&#xa;• Anunciar texto con TTS&#xa;• Priorizar voces en español&#xa;• Control de velocidad y volumen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="780" y="310" width="200" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- API Endpoints -->
+        <mxCell id="api-container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="440" width="1000" height="120" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="api-title" value="🌐 MCP API Endpoints (mcp.py)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="450" width="300" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="health-endpoint" value="❤️ /api/mcp/health&#xa;• Verificar estado MCP&#xa;• Retorna herramientas disponibles" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="120" y="490" width="180" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="modules-endpoint" value="📚 /api/mcp/modules/*&#xa;• CRUD de módulos&#xa;• Búsqueda y filtrado&#xa;• Gestión de categorías" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="320" y="490" width="180" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="accessibility-endpoint" value="♿ /api/mcp/accessibility/*&#xa;• Herramientas de accesibilidad&#xa;• Configuración de preferencias&#xa;• Estado de funciones activas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="520" y="490" width="180" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="search-endpoint" value="🔍 /api/mcp/modules/search&#xa;• Endpoint de búsqueda principal&#xa;• Autenticación requerida&#xa;• Logs de usage analytics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="720" y="490" width="180" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Data Sources -->
+        <mxCell id="data-sources-container" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="600" width="1000" height="100" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="data-sources-title" value="📄 Data Sources" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="610" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="csv-modules" value="📊 learning_modules.csv&#xa;• Módulos de aprendizaje STEM&#xa;• Competencias y ejes temáticos&#xa;• Preguntas de evaluación" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="120" y="640" width="200" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="user-prefs" value="⚙️ User Preferences&#xa;• Configuraciones de accesibilidad&#xa;• Preferencias de UI&#xa;• Historial de búsquedas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="340" y="640" width="200" height="50" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="session-data" value="🔄 Session Data&#xa;• Estado temporal de herramientas&#xa;• Cache de resultados&#xa;• Configuraciones activas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="560" y="640" width="200" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Frontend Integration -->
+        <mxCell id="frontend-integration" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="80" y="740" width="1000" height="60" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="frontend-title" value="🖥️ Frontend Integration" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="750" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="mcp-tools-page" value="🛠️ mcp_tools.html&#xa;Interfaz de búsqueda" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="320" y="750" width="150" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="accessibility-page" value="♿ accessibility.html&#xa;Panel de accesibilidad" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="490" y="750" width="150" height="40" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="chat-integration" value="💬 Chat IA Integration&#xa;Llamadas a herramientas MCP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="660" y="750" width="150" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows showing data flow -->
+        <mxCell id="arrow1" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#d79b00;" edge="1" parent="1" source="fastmcp-container" target="mcp-service-container">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="500" y="350" as="sourcePoint" />
+            <mxPoint x="550" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow2" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="mcp-service-container" target="api-container">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="500" y="450" as="sourcePoint" />
+            <mxPoint x="550" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow3" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#9673a6;" edge="1" parent="1" source="api-container" target="data-sources-container">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="500" y="600" as="sourcePoint" />
+            <mxPoint x="550" y="550" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="arrow4" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;strokeColor=#b46504;" edge="1" parent="1" source="data-sources-container" target="frontend-integration">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="500" y="750" as="sourcePoint" />
+            <mxPoint x="550" y="700" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Integration Notes -->
+        <mxCell id="integration-notes" value="📝 NOTAS DE INTEGRACIÓN:&#xa;• FastMCP maneja la comunicación bidireccional&#xa;• Herramientas se registran automáticamente&#xa;• Validación de parámetros con Pydantic&#xa;• Logging y monitoreo de uso&#xa;• Manejo de errores y fallbacks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#000000;align=left;verticalAlign=top;spacingLeft=10;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="850" y="100" width="230" height="120" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
