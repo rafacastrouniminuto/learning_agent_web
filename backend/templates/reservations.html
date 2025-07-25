@@ -1,0 +1,1191 @@
+{% extends "base.html" %}
+
+{% block title %}Reservas Living Lab - Living Lab UNIMINUTO{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reservations-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .reservations-header {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .reservation-tabs {
+        display: flex;
+        margin-bottom: 30px;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .tab-button {
+        padding: 12px 24px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        font-weight: 500;
+        color: var(--text-muted);
+        transition: all 0.3s ease;
+    }
+
+    .tab-button.active {
+        color: var(--primary-purple);
+        border-bottom-color: var(--primary-purple);
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-grid-full {
+        grid-column: 1 / -1;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+    .form-group .required {
+        color: var(--accent-pink);
+    }
+
+    .form-input, .form-select, .form-textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: var(--primary-purple);
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .checkbox-item:hover {
+        background-color: var(--bg-light);
+    }
+
+    .checkbox-item input[type="checkbox"] {
+        margin-right: 8px;
+    }
+
+    .checkbox-item.selected {
+        background-color: rgba(124, 58, 237, 0.1);
+        border-color: var(--primary-purple);
+    }
+
+    .reservations-list {
+        display: grid;
+        gap: 20px;
+    }
+
+    .reservation-card {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .reservation-card:hover {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .reservation-header {
+        display: flex;
+        justify-content: between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+
+    .reservation-number {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: var(--primary-purple);
+    }
+
+    .reservation-status {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .status-active {
+        background-color: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+    }
+
+    .status-cancelled {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .status-completed {
+        background-color: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .reservation-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .detail-value {
+        font-weight: 500;
+        color: var(--text-color);
+    }
+
+    .tools-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 5px;
+    }
+
+    .tool-tag {
+        background-color: var(--bg-light);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    .reservation-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn-small {
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 6px;
+    }
+
+    .filters-section {
+        background: var(--bg-light);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: end;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-muted);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        color: var(--border-color);
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .reservation-tabs {
+            flex-direction: column;
+        }
+        
+        .filters-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reservations-container">
+    <div class="reservations-header">
+        <h1>
+            <i class="fas fa-calendar-alt" style="color: var(--primary-purple); margin-right: 12px;"></i>
+            Sistema de Reservas Living Lab
+        </h1>
+        <p class="text-muted">Gestiona las reservas de los espacios y herramientas del Living Lab UNIMINUTO</p>
+    </div>
+
+    <div class="reservation-tabs">
+        <button class="tab-button active" data-tab="nueva-reserva">
+            <i class="fas fa-plus"></i>
+            Nueva Reserva
+        </button>
+        <button class="tab-button" data-tab="mis-reservas">
+            <i class="fas fa-list"></i>
+            Mis Reservas
+        </button>
+        <button class="tab-button" data-tab="todas-reservas">
+            <i class="fas fa-calendar"></i>
+            Todas las Reservas
+        </button>
+        <button class="tab-button" data-tab="estadisticas">
+            <i class="fas fa-chart-bar"></i>
+            Estadísticas
+        </button>
+    </div>
+
+    <!-- Tab: Nueva Reserva -->
+    <div id="nueva-reserva" class="tab-content active">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-plus-circle"></i>
+                    Crear Nueva Reserva
+                </h2>
+            </div>
+            
+            <form id="reservationForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nombre">Nombre Completo <span class="required">*</span></label>
+                        <input type="text" id="nombre" name="nombre" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rol">Rol <span class="required">*</span></label>
+                        <input type="text" id="rol" name="rol_de_quien_reserva" class="form-input" placeholder="Ej: Estudiante, Docente, Investigador..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="correo">Correo Electrónico <span class="required">*</span></label>
+                        <input type="email" id="correo" name="correo" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="telefono">Número de Teléfono</label>
+                        <input type="text" id="telefono" name="numero_de_telefono" class="form-input" placeholder="Opcional o N.A">
+                    </div>
+
+                    <div class="form-group form-grid-full">
+                        <label>Escenario a Reservar <span class="required">*</span></label>
+                        <div id="escenariosCheckbox" class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="escenario_CREALAB" name="escenario_de_la_reserva" value="CREALAB">
+                                <label for="escenario_CREALAB">CREALAB</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="escenario_INNOVALAB" name="escenario_de_la_reserva" value="INNOVALAB">
+                                <label for="escenario_INNOVALAB">INNOVALAB</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="escenario_LEGOBOT" name="escenario_de_la_reserva" value="LEGOBOT">
+                                <label for="escenario_LEGOBOT">LEGOBOT</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="escenario_LIVINGLAB" name="escenario_de_la_reserva" value="LIVINGLAB">
+                                <label for="escenario_LIVINGLAB">LIVINGLAB</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="escenario_MAKERSPACE" name="escenario_de_la_reserva" value="MAKERSPACE">
+                                <label for="escenario_MAKERSPACE">MAKERSPACE</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha_reserva">Fecha de la Reserva <span class="required">*</span></label>
+                        <input type="date" id="fecha_reserva" name="fecha_reserva" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="horario">Horario <span class="required">*</span></label>
+                        <input type="text" id="horario" name="horario" class="form-input" placeholder="08:00-10:00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="participantes">Número de Participantes <span class="required">*</span></label>
+                        <input type="number" id="participantes" name="n_participantes" class="form-input" min="1" max="50" required>
+                    </div>
+
+                    <div class="form-group form-grid-full">
+                        <label for="objetivo">Objetivo de la Reserva <span class="required">*</span></label>
+                        <textarea id="objetivo" name="objetivo" class="form-textarea" placeholder="Describe el propósito de tu reserva..." required></textarea>
+                    </div>
+
+                    <div class="form-group form-grid-full">
+                        <label>Herramientas a Utilizar <span class="required">*</span></label>
+                        <div id="herramientasCheckbox" class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tool_HERRAMIENTAS DEL LIVINGLAB" name="herramientas" value="HERRAMIENTAS DEL LIVINGLAB">
+                                <label for="tool_HERRAMIENTAS DEL LIVINGLAB">HERRAMIENTAS DEL LIVINGLAB</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tool_IMPRESORAS 3D" name="herramientas" value="IMPRESORAS 3D">
+                                <label for="tool_IMPRESORAS 3D">IMPRESORAS 3D</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tool_LEGOS" name="herramientas" value="LEGOS">
+                                <label for="tool_LEGOS">LEGOS</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tool_MESA DE FIRSH LEGO" name="herramientas" value="MESA DE FIRSH LEGO">
+                                <label for="tool_MESA DE FIRSH LEGO">MESA DE FIRSH LEGO</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tool_METAQUEST" name="herramientas" value="METAQUEST">
+                                <label for="tool_METAQUEST">METAQUEST</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tool_KIT ARDUINOS" name="herramientas" value="KIT ARDUINOS">
+                                <label for="tool_KIT ARDUINOS">KIT ARDUINOS</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="tool_USO DE LOS ECOSISTEMAS" name="herramientas" value="USO DE LOS ECOSISTEMAS">
+                                <label for="tool_USO DE LOS ECOSISTEMAS">USO DE LOS ECOSISTEMAS</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Crear Reserva
+                    </button>
+                    <button type="reset" class="btn btn-secondary" style="margin-left: 10px;">
+                        <i class="fas fa-undo"></i>
+                        Limpiar Formulario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tab: Mis Reservas -->
+    <div id="mis-reservas" class="tab-content">
+        <div class="filters-section">
+            <h3>Filtros</h3>
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label for="filterEscenario">Escenario</label>
+                    <select id="filterEscenario" class="form-select">
+                        <option value="">Todos los escenarios</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterStatus">Estado</label>
+                    <select id="filterStatus" class="form-select">
+                        <option value="">Todos los estados</option>
+                        <option value="active">Activa</option>
+                        <option value="cancelled">Cancelada</option>
+                        <option value="completed">Completada</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button id="applyFilters" class="btn btn-primary">
+                        <i class="fas fa-filter"></i>
+                        Aplicar Filtros
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="misReservasList" class="reservations-list">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                Cargando reservas...
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Todas las Reservas -->
+    <div id="todas-reservas" class="tab-content">
+        <div class="filters-section">
+            <h3>Filtros Avanzados</h3>
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label for="filterAllEscenario">Escenario</label>
+                    <select id="filterAllEscenario" class="form-select">
+                        <option value="">Todos los escenarios</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterAllStatus">Estado</label>
+                    <select id="filterAllStatus" class="form-select">
+                        <option value="">Todos los estados</option>
+                        <option value="active">Activa</option>
+                        <option value="cancelled">Cancelada</option>
+                        <option value="completed">Completada</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterNombre">Nombre</label>
+                    <input type="text" id="filterNombre" class="form-input" placeholder="Buscar por nombre...">
+                </div>
+                <div class="form-group">
+                    <button id="applyAllFilters" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        Buscar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="todasReservasList" class="reservations-list">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                Cargando todas las reservas...
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Estadísticas -->
+    <div id="estadisticas" class="tab-content">
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Resumen General
+                    </h3>
+                </div>
+                <div id="statsOverview">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Cargando estadísticas...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar reserva -->
+<div id="editModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Editar Reserva</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editReservationForm">
+                <!-- Formulario similar al de creación -->
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variables globales
+let currentReservations = [];
+let escenarios = [];
+let herramientas = [];
+let roles = [];
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
+    
+    // Debug - verificar elementos
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    console.log('Tab buttons encontrados:', tabButtons.length);
+    console.log('Tab contents encontrados:', tabContents.length);
+    
+    tabButtons.forEach((btn, index) => {
+        const dataTab = btn.getAttribute('data-tab');
+        console.log(`Tab button ${index}: data-tab="${dataTab}"`);
+    });
+    
+    initializeTabs();
+    
+    // Establecer fecha mínima como hoy
+    const fechaInput = document.getElementById('fecha_reserva');
+    if (fechaInput) {
+        const today = new Date().toISOString().split('T')[0];
+        fechaInput.min = today;
+    }
+    
+    // Agregar event listeners a los checkboxes
+    setupCheckboxEventListeners();
+    
+    // Agregar un pequeño delay para asegurar que todo esté cargado
+    setTimeout(() => {
+        loadEnums();
+        loadUserReservations();
+    }, 100);
+    
+    // Agregar event listeners para los botones de filtros
+    document.getElementById('applyFilters')?.addEventListener('click', function() {
+        loadUserReservations();
+    });
+    
+    document.getElementById('applyAllFilters')?.addEventListener('click', function() {
+        loadAllReservations();
+    });
+});
+
+function setupCheckboxEventListeners() {
+    // Event listeners para escenarios
+    document.querySelectorAll('#escenariosCheckbox .checkbox-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.type !== 'checkbox') {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+            }
+        });
+    });
+    
+    // Event listeners para herramientas
+    document.querySelectorAll('#herramientasCheckbox .checkbox-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.type !== 'checkbox') {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+            }
+            item.classList.toggle('selected', item.querySelector('input[type="checkbox"]').checked);
+        });
+    });
+}
+
+// Gestión de tabs
+function initializeTabs() {
+    console.log('🔧 Inicializando tabs...');
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    console.log('Elementos encontrados:', {
+        tabButtons: tabButtons.length,
+        tabContents: tabContents.length
+    });
+
+    tabButtons.forEach((button, index) => {
+        const dataTab = button.getAttribute('data-tab');
+        console.log(`Configurando event listener para tab ${index}: "${dataTab}"`);
+        
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('🖱️ Click en tab:', dataTab);
+            
+            const targetTab = button.getAttribute('data-tab');
+            console.log('Cambiando a tab:', targetTab);
+            
+            // Remover clases activas
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active');
+                console.log('Removido active de:', btn.getAttribute('data-tab'));
+            });
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                console.log('Removido active de content:', content.id);
+            });
+            
+            // Agregar clase activa
+            button.classList.add('active');
+            const targetElement = document.getElementById(targetTab);
+            if (targetElement) {
+                targetElement.classList.add('active');
+                console.log('✅ Activado tab:', targetTab);
+            } else {
+                console.error('❌ No se encontró elemento con ID:', targetTab);
+            }
+            
+            // Cargar datos según tab
+            if (targetTab === 'mis-reservas') {
+                console.log('📋 Cargando "Mis Reservas"...');
+                loadUserReservations();
+            } else if (targetTab === 'todas-reservas') {
+                console.log('📋 Cargando "Todas las Reservas"...');
+                loadAllReservations();
+            } else if (targetTab === 'estadisticas') {
+                console.log('📊 Cargando "Estadísticas"...');
+                loadStatistics();
+            }
+        });
+    });
+    console.log('✅ Tabs inicializados correctamente');
+}
+
+// Cargar enums desde la API
+async function loadEnums() {
+    try {
+        console.log('Cargando enums...');
+        
+        // Hardcoded values for escenarios and herramientas
+        escenarios = [
+            { value: "CREALAB", label: "CREALAB" },
+            { value: "INNOVALAB", label: "INNOVALAB" },
+            { value: "LEGOBOT", label: "LEGOBOT" },
+            { value: "LIVINGLAB", label: "LIVINGLAB" },
+            { value: "MAKERSPACE", label: "MAKERSPACE" }
+        ];
+        
+        herramientas = [
+            { value: "HERRAMIENTAS DEL LIVINGLAB", label: "HERRAMIENTAS DEL LIVINGLAB" },
+            { value: "IMPRESORAS 3D", label: "IMPRESORAS 3D" },
+            { value: "LEGOS", label: "LEGOS" },
+            { value: "MESA DE FIRSH LEGO", label: "MESA DE FIRSH LEGO" },
+            { value: "METAQUEST", label: "METAQUEST" },
+            { value: "KIT ARDUINOS", label: "KIT ARDUINOS" },
+            { value: "USO DE LOS ECOSISTEMAS", label: "USO DE LOS ECOSISTEMAS" }
+        ];
+
+        console.log('Escenarios cargados:', escenarios);
+        console.log('Herramientas cargadas:', herramientas);
+
+        populateEscenarios();
+        populateSelects();
+        populateHerramientas();
+    } catch (error) {
+        console.error('Error cargando enums:', error);
+        showNotification('Error cargando opciones del formulario', 'error');
+    }
+}
+
+function populateEscenarios() {
+    console.log('Poblando escenarios...');
+    const container = document.getElementById('escenariosCheckbox');
+    if (!container) {
+        console.error('Container escenariosCheckbox no encontrado');
+        return;
+    }
+    
+    console.log('Container encontrado:', container);
+    
+    // Solo poblar si no hay contenido estático
+    if (container.children.length === 0) {
+        escenarios.forEach(escenario => {
+            console.log('Agregando escenario:', escenario);
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+            div.innerHTML = `
+                <input type="checkbox" id="escenario_${escenario.value}" name="escenario_de_la_reserva" value="${escenario.value}">
+                <label for="escenario_${escenario.value}">${escenario.label}</label>
+            `;
+            
+            div.addEventListener('click', (e) => {
+                if (e.target.type !== 'checkbox') {
+                    const checkbox = div.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+                }
+            });
+            
+            container.appendChild(div);
+        });
+    }
+    
+    console.log('Escenarios poblados completamente');
+}
+
+function populateSelects() {
+    // Poblar selects de escenarios para filtros (mantener como select para filtros)
+    ['filterEscenario', 'filterAllEscenario'].forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+            escenarios.forEach(escenario => {
+                const option = document.createElement('option');
+                option.value = escenario.value;
+                option.textContent = escenario.label;
+                select.appendChild(option);
+            });
+        }
+    });
+}
+
+function populateHerramientas() {
+    console.log('Poblando herramientas...');
+    const container = document.getElementById('herramientasCheckbox');
+    if (!container) {
+        console.error('Container herramientasCheckbox no encontrado');
+        return;
+    }
+    
+    console.log('Container encontrado:', container);
+    
+    // Solo poblar si no hay contenido estático
+    if (container.children.length === 0) {
+        herramientas.forEach(herramienta => {
+            console.log('Agregando herramienta:', herramienta);
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+            div.innerHTML = `
+                <input type="checkbox" id="tool_${herramienta.value}" name="herramientas" value="${herramienta.value}">
+                <label for="tool_${herramienta.value}">${herramienta.label}</label>
+            `;
+            
+            div.addEventListener('click', (e) => {
+                if (e.target.type !== 'checkbox') {
+                    const checkbox = div.querySelector('input[type="checkbox"]');
+                    checkbox.checked = !checkbox.checked;
+                }
+                div.classList.toggle('selected', div.querySelector('input[type="checkbox"]').checked);
+            });
+            
+            container.appendChild(div);
+        });
+    }
+    
+    console.log('Herramientas pobladas completamente');
+}
+
+// Gestión del formulario de reserva
+document.getElementById('reservationForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+        nombre: formData.get('nombre'),
+        rol_de_quien_reserva: formData.get('rol_de_quien_reserva'),
+        correo: formData.get('correo'),
+        numero_de_telefono: formData.get('numero_de_telefono') || null,
+        fecha_reserva: formData.get('fecha_reserva'),
+        escenario_de_la_reserva: Array.from(formData.getAll('escenario_de_la_reserva')),
+        horario: formData.get('horario'),
+        n_participantes: parseInt(formData.get('n_participantes')),
+        objetivo: formData.get('objetivo'),
+        herramientas: Array.from(formData.getAll('herramientas'))
+    };
+
+    // Validar que al menos un escenario esté seleccionado
+    if (data.escenario_de_la_reserva.length === 0) {
+        showNotification('⚠️ Debe seleccionar al menos un escenario', 'warning');
+        return;
+    }
+
+    // Validar que al menos una herramienta esté seleccionada
+    if (data.herramientas.length === 0) {
+        showNotification('⚠️ Debe seleccionar al menos una herramienta', 'warning');
+        return;
+    }
+
+    // Validar que la fecha no sea en el pasado
+    const fechaReserva = new Date(data.fecha_reserva);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    if (fechaReserva < hoy) {
+        showNotification('⚠️ La fecha de reserva no puede ser en el pasado', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/reservations/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            const reservation = await response.json();
+            showNotification(`🎉 Reserva #${reservation.n_solicitud} creada exitosamente`, 'success');
+            this.reset();
+            document.querySelectorAll('.checkbox-item').forEach(item => {
+                item.classList.remove('selected');
+                item.querySelector('input[type="checkbox"]').checked = false;
+            });
+            
+            // Opcional: cambiar a la pestaña de "Mis Reservas" para ver la reserva creada
+            // const misReservasTab = document.querySelector('[data-tab="mis-reservas"]');
+            // misReservasTab.click();
+        } else {
+            const error = await response.json();
+            showNotification(`❌ Error: ${error.detail}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error creando reserva:', error);
+        showNotification('❌ Error de conexión al crear la reserva', 'error');
+    }
+});
+
+// Cargar reservas del usuario
+async function loadUserReservations() {
+    console.log('🔄 Cargando reservas del usuario...');
+    const container = document.getElementById('misReservasList');
+    if (!container) {
+        console.error('❌ No se encontró el contenedor misReservasList');
+        return;
+    }
+    
+    // Mostrar loading
+    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando reservas...</div>';
+    
+    try {
+        const response = await fetch('/api/reservations/');
+        console.log('Respuesta del servidor:', response);
+        if (response.ok) {
+            const reservations = await response.json();
+            console.log('Reservas cargadas:', reservations);
+            displayReservations(reservations, 'misReservasList');
+        } else {
+            console.error('Error en la respuesta:', response.status);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error cargando reservas</h3>
+                    <p>No se pudieron cargar las reservas (Error ${response.status}). <button onclick="loadUserReservations()" class="btn btn-primary btn-small">Reintentar</button></p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error de conexión</h3>
+                <p>No se pudo conectar con el servidor. <button onclick="loadUserReservations()" class="btn btn-primary btn-small">Reintentar</button></p>
+            </div>
+        `;
+    }
+}
+
+// Cargar todas las reservas
+async function loadAllReservations() {
+    console.log('Cargando todas las reservas...');
+    try {
+        const response = await fetch('/api/reservations/');
+        console.log('Respuesta del servidor (todas):', response);
+        if (response.ok) {
+            const reservations = await response.json();
+            console.log('Todas las reservas cargadas:', reservations);
+            displayReservations(reservations, 'todasReservasList');
+        } else {
+            console.error('Error en la respuesta:', response.status);
+            throw new Error('Error cargando todas las reservas');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('todasReservasList').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error cargando reservas</h3>
+                <p>No se pudieron cargar las reservas. Intenta nuevamente.</p>
+            </div>
+        `;
+    }
+}
+
+// Mostrar reservas
+function displayReservations(reservations, containerId) {
+    const container = document.getElementById(containerId);
+    
+    if (reservations.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <h3>No hay reservas</h3>
+                <p>No se encontraron reservas que coincidan con los criterios.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = reservations.map(reservation => `
+        <div class="reservation-card">
+            <div class="reservation-header">
+                <div class="reservation-number">Reserva #${reservation.n_solicitud}</div>
+                <div class="reservation-status status-${reservation.status}">${getStatusLabel(reservation.status)}</div>
+            </div>
+            
+            <div class="reservation-details">
+                <div class="detail-item">
+                    <div class="detail-label">Nombre</div>
+                    <div class="detail-value">${reservation.nombre}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Escenario(s)</div>
+                    <div class="detail-value">${Array.isArray(reservation.escenario_de_la_reserva) ? reservation.escenario_de_la_reserva.join(', ') : reservation.escenario_de_la_reserva}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Fecha de Reserva</div>
+                    <div class="detail-value">${reservation.fecha_reserva}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Horario</div>
+                    <div class="detail-value">${reservation.horario}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Participantes</div>
+                    <div class="detail-value">${reservation.n_participantes}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Fecha de Solicitud</div>
+                    <div class="detail-value">${formatDate(reservation.fecha_de_solicitud)}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Correo</div>
+                    <div class="detail-value">${reservation.correo}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Objetivo</div>
+                    <div class="detail-value">${reservation.objetivo}</div>
+                </div>
+                
+                ${reservation.herramientas && reservation.herramientas.length > 0 ? `
+                <div class="detail-item" style="grid-column: 1 / -1;">
+                    <div class="detail-label">Herramientas</div>
+                    <div class="tools-list">
+                        ${reservation.herramientas.map(tool => `<span class="tool-tag">${tool}</span>`).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+            
+            ${reservation.status === 'active' ? `
+            <div class="reservation-actions">
+                <button class="btn btn-small btn-secondary" onclick="editReservation(${reservation.n_solicitud})">
+                    <i class="fas fa-edit"></i>
+                    Editar
+                </button>
+                <button class="btn btn-small btn-danger" onclick="cancelReservation(${reservation.n_solicitud})">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+            </div>
+            ` : ''}
+        </div>
+    `).join('');
+}
+
+// Cargar estadísticas
+async function loadStatistics() {
+    console.log('Cargando estadísticas...');
+    try {
+        const response = await fetch('/api/reservations/stats/overview');
+        console.log('Respuesta del servidor (estadísticas):', response);
+        if (response.ok) {
+            const stats = await response.json();
+            console.log('Estadísticas cargadas:', stats);
+            displayStatistics(stats);
+        } else {
+            console.error('Error en la respuesta:', response.status);
+            throw new Error('Error cargando estadísticas');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('statsOverview').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error cargando estadísticas</h3>
+                <p>No se pudieron cargar las estadísticas.</p>
+            </div>
+        `;
+    }
+}
+
+function displayStatistics(stats) {
+    document.getElementById('statsOverview').innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div style="text-align: center; padding: 20px; background: var(--bg-light); border-radius: 8px;">
+                <div style="font-size: 2rem; font-weight: bold; color: var(--primary-purple);">${stats.total_reservations}</div>
+                <div style="color: var(--text-muted);">Total de Reservas</div>
+            </div>
+            
+            <div style="text-align: center; padding: 20px; background: var(--bg-light); border-radius: 8px;">
+                <div style="font-size: 2rem; font-weight: bold; color: var(--accent-cyan);">${stats.active_reservations}</div>
+                <div style="color: var(--text-muted);">Reservas Activas</div>
+            </div>
+            
+            <div style="text-align: center; padding: 20px; background: var(--bg-light); border-radius: 8px;">
+                <div style="font-size: 2rem; font-weight: bold; color: var(--accent-yellow);">${stats.recent_reservations}</div>
+                <div style="color: var(--text-muted);">Este Mes</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <h4>Reservas por Escenario</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px;">
+                ${Object.entries(stats.escenarios_stats || {}).map(([escenario, count]) => `
+                    <div style="text-align: center; padding: 15px; background: white; border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="font-weight: bold; color: var(--primary-blue);">${count}</div>
+                        <div style="font-size: 0.9rem; color: var(--text-muted);">${escenario}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// Funciones auxiliares
+function getStatusLabel(status) {
+    const labels = {
+        'active': 'Activa',
+        'cancelled': 'Cancelada',
+        'completed': 'Completada'
+    };
+    return labels[status] || status;
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+async function cancelReservation(nSolicitud) {
+    if (confirm('¿Estás seguro de que quieres cancelar esta reserva?')) {
+        try {
+            const response = await fetch(`/api/reservations/${nSolicitud}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showNotification('Reserva cancelada exitosamente', 'success');
+                loadUserReservations();
+            } else {
+                const error = await response.json();
+                showNotification(`Error: ${error.detail}`, 'error');
+            }
+        } catch (error) {
+            console.error('Error cancelando reserva:', error);
+            showNotification('Error de conexión al cancelar la reserva', 'error');
+        }
+    }
+}
+
+function editReservation(nSolicitud) {
+    // TODO: Implementar modal de edición
+    showNotification('Función de edición en desarrollo', 'info');
+}
+
+function showNotification(message, type = 'info') {
+    // Crear elemento de notificación
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+    `;
+
+    const colors = {
+        'success': '#22c55e',
+        'error': '#ef4444',
+        'warning': '#f59e0b',
+        'info': '#3b82f6'
+    };
+
+    notification.style.backgroundColor = colors[type] || colors.info;
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div>${message}</div>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Remover después de 5 segundos
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Estilos para las animaciones
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

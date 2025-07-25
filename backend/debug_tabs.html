@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Tabs</title>
+    <style>
+        .tab-button { margin: 5px; padding: 10px; border: 1px solid #ccc; cursor: pointer; }
+        .tab-button.active { background: #007bff; color: white; }
+        .tab-content { display: none; padding: 20px; margin: 10px 0; border: 1px solid #ccc; }
+        .tab-content.active { display: block; }
+        .log { margin: 5px 0; padding: 5px; background: #f0f0f0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Debug Tabs Test</h1>
+    
+    <div id="logs"></div>
+    
+    <div class="reservation-tabs">
+        <button class="tab-button active" data-tab="nueva-reserva">Nueva Reserva</button>
+        <button class="tab-button" data-tab="mis-reservas">Mis Reservas</button>
+        <button class="tab-button" data-tab="todas-reservas">Todas las Reservas</button>
+        <button class="tab-button" data-tab="estadisticas">Estadísticas</button>
+    </div>
+
+    <div id="nueva-reserva" class="tab-content active">
+        <h3>Nueva Reserva</h3>
+        <p>Contenido de nueva reserva</p>
+    </div>
+    
+    <div id="mis-reservas" class="tab-content">
+        <h3>Mis Reservas</h3>
+        <div id="misReservasList">Loading...</div>
+    </div>
+    
+    <div id="todas-reservas" class="tab-content">
+        <h3>Todas las Reservas</h3>
+        <div id="todasReservasList">Loading...</div>
+    </div>
+    
+    <div id="estadisticas" class="tab-content">
+        <h3>Estadísticas</h3>
+        <div id="statsOverview">Loading...</div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.className = 'log';
+            div.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            logs.appendChild(div);
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        // Simular las funciones de carga
+        async function loadUserReservations() {
+            log('🔄 Cargando reservas del usuario...');
+            try {
+                const response = await fetch('/api/reservations/');
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Reservas cargadas: ' + data.length + ' reservas');
+                    document.getElementById('misReservasList').innerHTML = 
+                        data.map(r => `<div>Reserva #${r.n_solicitud}: ${r.nombre}</div>`).join('');
+                } else {
+                    log('❌ Error: ' + response.status);
+                }
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+            }
+        }
+
+        async function loadAllReservations() {
+            log('🔄 Cargando todas las reservas...');
+            try {
+                const response = await fetch('/api/reservations/');
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Todas las reservas cargadas: ' + data.length + ' reservas');
+                    document.getElementById('todasReservasList').innerHTML = 
+                        data.map(r => `<div>Reserva #${r.n_solicitud}: ${r.nombre}</div>`).join('');
+                } else {
+                    log('❌ Error: ' + response.status);
+                }
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+            }
+        }
+
+        async function loadStatistics() {
+            log('🔄 Cargando estadísticas...');
+            try {
+                const response = await fetch('/api/reservations/stats/overview');
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ Estadísticas cargadas: ' + JSON.stringify(data));
+                    document.getElementById('statsOverview').innerHTML = 
+                        `<div>Total: ${data.total_reservations}, Activas: ${data.active_reservations}</div>`;
+                } else {
+                    log('❌ Error: ' + response.status);
+                }
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+            }
+        }
+
+        // Inicializar tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            log('📋 DOM cargado, inicializando tabs...');
+            
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            log('Elementos encontrados: ' + tabButtons.length + ' botones, ' + tabContents.length + ' contenidos');
+
+            tabButtons.forEach((button, index) => {
+                const dataTab = button.getAttribute('data-tab');
+                log('Configurando tab: ' + dataTab);
+                
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    log('🖱️ Click en tab: ' + dataTab);
+                    
+                    // Remover clases activas
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Agregar clase activa
+                    button.classList.add('active');
+                    const targetElement = document.getElementById(dataTab);
+                    if (targetElement) {
+                        targetElement.classList.add('active');
+                        log('✅ Activado tab: ' + dataTab);
+                    } else {
+                        log('❌ No se encontró elemento: ' + dataTab);
+                    }
+                    
+                    // Cargar datos según tab
+                    if (dataTab === 'mis-reservas') {
+                        loadUserReservations();
+                    } else if (dataTab === 'todas-reservas') {
+                        loadAllReservations();
+                    } else if (dataTab === 'estadisticas') {
+                        loadStatistics();
+                    }
+                });
+            });
+            
+            log('✅ Tabs inicializados correctamente');
+        });
+    </script>
+</body>
+</html>

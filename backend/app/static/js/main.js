@@ -376,6 +376,9 @@ class LearningAgent {
             case 'mcp-tools':
                 window.location.href = '/mcp-tools';
                 break;
+            case 'reservations':
+                window.location.href = '/reservations';
+                break;
             default:
                 console.log('Unknown action:', action);
         }

@@ -11,7 +11,9 @@ from .core.database import get_db, Base, engine
 from .api.auth import router as auth_router, get_current_user
 from .api.chat import router as chat_router
 from .api.mcp import router as mcp_router
+from .api.reservations import router as reservations_router
 from .models.user import User
+from .models.reservation import Reservation
 from .services.mcp_service import mcp_service_instance, MCP_AVAILABLE
 from . import integrations  # Initialize MCP integration
 
@@ -54,6 +56,7 @@ if MCP_AVAILABLE and hasattr(mcp_service_instance["server"], 'streamable_http_ap
 app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(mcp_router)
+app.include_router(reservations_router)
 
 # Web Routes
 @app.get("/", response_class=HTMLResponse)
@@ -95,6 +98,25 @@ async def profile_page(request: Request):
 async def mcp_tools_page(request: Request):
     """MCP Tools testing page"""
     return templates.TemplateResponse("mcp_tools.html", {"request": request})
+
+@app.get("/reservations", response_class=HTMLResponse)
+async def reservations_page(request: Request):
+    """Reservations management page"""
+    return templates.TemplateResponse("reservations.html", {"request": request})
+
+@app.get("/test-frontend", response_class=HTMLResponse)
+async def test_frontend(request: Request):
+    """Test frontend page"""
+    with open("test_frontend.html", "r", encoding="utf-8") as file:
+        content = file.read()
+    return HTMLResponse(content=content)
+
+@app.get("/debug-tabs", response_class=HTMLResponse)
+async def debug_tabs(request: Request):
+    """Debug tabs page"""
+    with open("debug_tabs.html", "r", encoding="utf-8") as file:
+        content = file.read()
+    return HTMLResponse(content=content)
 
 # Health check endpoint
 @app.get("/health")

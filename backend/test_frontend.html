@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Frontend</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e9; color: #2e7d32; }
+        .info { background: #e3f2fd; color: #1565c0; }
+        button { margin: 5px; padding: 10px 15px; }
+    </style>
+</head>
+<body>
+    <h1>Test Frontend Living Lab</h1>
+    
+    <div>
+        <button onclick="testGetReservations()">Test Get Reservations</button>
+        <button onclick="testGetStats()">Test Get Stats</button>
+        <button onclick="testCreateReservation()">Test Create Reservation</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div id="results"></div>
+    
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testGetReservations() {
+            try {
+                addResult('Probando GET /api/reservations/', 'info');
+                const response = await fetch('/api/reservations/');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`✅ Reservas obtenidas: ${data.length} reservas`, 'success');
+                    if (data.length > 0) {
+                        addResult(`📋 Primera reserva: ${data[0].nombre} - ${data[0].escenario_de_la_reserva?.join(', ')}`, 'info');
+                    }
+                } else {
+                    addResult(`❌ Error: ${response.status} - ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Error de conexión: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testGetStats() {
+            try {
+                addResult('Probando GET /api/reservations/stats/overview', 'info');
+                const response = await fetch('/api/reservations/stats/overview');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`✅ Estadísticas obtenidas: ${data.total_reservations} total, ${data.active_reservations} activas`, 'success');
+                } else {
+                    addResult(`❌ Error: ${response.status} - ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Error de conexión: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testCreateReservation() {
+            try {
+                addResult('Probando POST /api/reservations/', 'info');
+                
+                const testData = {
+                    nombre: "Test Usuario",
+                    rol_de_quien_reserva: "Estudiante",
+                    correo: "test@uniminuto.edu",
+                    numero_de_telefono: "3001234567",
+                    fecha_reserva: "2025-07-20",
+                    escenario_de_la_reserva: ["CREALAB"],
+                    horario: "10:00-12:00",
+                    n_participantes: 3,
+                    objetivo: "Prueba de funcionalidad",
+                    herramientas: ["LEGOS"]
+                };
+                
+                const response = await fetch('/api/reservations/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`✅ Reserva creada: #${data.n_solicitud} - ${data.nombre}`, 'success');
+                } else {
+                    const error = await response.json();
+                    addResult(`❌ Error: ${response.status} - ${error.detail || response.statusText}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Error de conexión: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test inicial
+        addResult('Frontend test cargado. Listo para probar APIs.', 'info');
+    </script>
+</body>
+</html>

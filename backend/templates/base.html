@@ -16,6 +16,7 @@
     <!-- Styles -->
     <link rel="stylesheet" href="/static/css/styles.css">
     
+    {% block extra_css %}{% endblock %}
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -50,6 +51,11 @@
                 <a href="/mcp-tools" class="nav-item {% if request.url.path == '/mcp-tools' %}active{% endif %}">
                     <i class="nav-icon fas fa-tools"></i>
                     <span>Herramientas MCP</span>
+                </a>
+                
+                <a href="/reservations" class="nav-item {% if request.url.path == '/reservations' %}active{% endif %}">
+                    <i class="nav-icon fas fa-calendar-alt"></i>
+                    <span>Reservas Living Lab</span>
                 </a>
                 
                 <a href="/profile" class="nav-item {% if request.url.path == '/profile' %}active{% endif %}">
