@@ -55,13 +55,159 @@ learning_agent_web/
 
 ## 🚀 Instalación y Configuración
 
-### Prerrequisitos
+### 🐳 Opción 1: Despliegue con Docker (RECOMENDADO para laboratorio)
+
+#### Prerrequisitos
+- Docker Desktop instalado
+- Clave de API de OpenAI
+
+#### 🍎 Para Mac/Linux
+
+**Instalación Rápida:**
+```bash
+# 1. Clonar o navegar al proyecto
+cd learning_agent_web
+
+# 2. Configurar variables de entorno
+cp .env.docker .env.docker.local
+# Editar .env.docker.local con tu OPENAI_API_KEY
+
+# 3. Desplegar con un solo comando
+./deploy-lab.sh
+```
+
+**Comandos Docker Útiles:**
+```bash
+# Ver logs en tiempo real
+docker-compose --env-file .env.docker logs -f
+
+# Reiniciar servicios
+docker-compose --env-file .env.docker restart
+
+# Detener servicios
+docker-compose --env-file .env.docker down
+
+# Ver estado
+docker-compose --env-file .env.docker ps
+```
+
+---
+
+### 🪟 Opción 2: Despliegue en Windows
+
+#### Prerrequisitos para Windows
+- Windows 10/11 (64-bit)
+- Docker Desktop for Windows instalado
+- PowerShell o Command Prompt
+- Clave de API de OpenAI
+
+#### Instalación Docker Desktop en Windows
+
+```powershell
+# Opción 1: Descargar desde https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe
+
+# Opción 2: Con Chocolatey (si tienes Chocolatey instalado)
+choco install docker-desktop
+
+# Opción 3: Con Winget (Windows 11)
+winget install Docker.DockerDesktop
+```
+
+**⚠️ Importante:** Después de instalar, **reinicia Windows** y abre Docker Desktop para completar la configuración.
+
+#### Despliegue con Scripts Automáticos
+
+**Opción A: PowerShell (recomendado)**
+```powershell
+# 1. Configurar variables de entorno
+@"
+OPENAI_API_KEY=tu-api-key-de-openai-aqui
+COMPOSE_PROJECT_NAME=learning-agent-lab
+LEARNING_AGENT_PORT=8000
+DEBUG_MODE=true
+"@ | Out-File -FilePath ".env.docker" -Encoding UTF8
+
+# 2. Ejecutar script de despliegue
+.\deploy-lab.ps1
+```
+
+**Opción B: Command Prompt (CMD)**
+```cmd
+REM 1. Configurar API key manualmente en .env.docker
+REM 2. Ejecutar script
+deploy-lab.bat
+```
+
+#### Comandos Útiles para Windows
+
+**PowerShell:**
+```powershell
+# Ver logs en tiempo real
+docker-compose --env-file .env.docker logs -f
+
+# Reiniciar servicios
+docker-compose --env-file .env.docker restart
+
+# Detener servicios
+docker-compose --env-file .env.docker down
+
+# Ver estado
+docker-compose --env-file .env.docker ps
+
+# Abrir en navegador
+start http://localhost:8000
+```
+
+**Command Prompt:**
+```cmd
+REM Ver logs
+docker-compose --env-file .env.docker logs -f
+
+REM Reiniciar
+docker-compose --env-file .env.docker restart
+
+REM Detener
+docker-compose --env-file .env.docker down
+
+REM Abrir navegador
+start http://localhost:8000
+```
+
+#### Solución de Problemas Windows
+
+**Error: "Docker daemon not running"**
+```powershell
+# Solución: Abrir Docker Desktop y esperar a que inicie
+# Verificar en la bandeja del sistema que Docker esté activo
+```
+
+**Error: "Execution Policy"**
+```powershell
+# Cambiar política de ejecución temporalmente
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\deploy-lab.ps1
+```
+
+**Error: "Port 8000 already in use"**
+```powershell
+# Ver qué proceso usa el puerto
+netstat -ano | findstr :8000
+
+# Cambiar puerto en docker-compose.yml si es necesario
+# ports: - "8001:8000"
+```
+
+---
+
+### 🐍 Opción 3: Instalación Manual (Desarrollo)
+
+#### Prerrequisitos
 
 - Python 3.8+
 - Entorno virtual activado
 - Clave de API de OpenAI
 
-### 1. Configuración del Entorno
+#### 1. Configuración del Entorno
 
 ```bash
 # Activar el entorno virtual
@@ -71,14 +217,14 @@ source ../learning_agent_env/bin/activate
 cd learning_agent_web/backend
 ```
 
-### 2. Instalación de Dependencias
+#### 2. Instalación de Dependencias
 
 ```bash
 # Instalar todas las dependencias
 pip install -r requirements.txt
 ```
 
-### 3. Configuración de Variables de Entorno
+#### 3. Configuración de Variables de Entorno
 
 ```bash
 # Crear archivo .env con tu configuración
@@ -96,7 +242,7 @@ OPENAI_MAX_TOKENS=1000
 EOF
 ```
 
-### 4. Ejecución del Sistema
+#### 4. Ejecución del Sistema
 
 ```bash
 # Asegúrate de estar en el directorio correcto
@@ -111,6 +257,28 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 **⚠️ Nota importante**: Asegúrate de tener tu API key de OpenAI configurada en el archivo `.env` antes de iniciar el servidor.
+
+---
+
+## 📊 Comparación de Métodos de Instalación
+
+| Característica | Docker (Mac/Linux) | Docker (Windows) | Manual (Desarrollo) |
+|---------------|-------------------|------------------|-------------------|
+| **Facilidad de instalación** | ⭐⭐⭐⭐⭐ Un comando | ⭐⭐⭐⭐⭐ Un comando | ⭐⭐⭐ Varios pasos |
+| **Consistencia** | ⭐⭐⭐⭐⭐ Total | ⭐⭐⭐⭐⭐ Total | ⭐⭐ Depende del sistema |
+| **Aislamiento** | ⭐⭐⭐⭐⭐ Completo | ⭐⭐⭐⭐⭐ Completo | ⭐ Ninguno |
+| **Mantenimiento** | ⭐⭐⭐⭐⭐ Simple | ⭐⭐⭐⭐⭐ Simple | ⭐⭐⭐ Manual |
+| **Para laboratorio** | ✅ Ideal | ✅ Ideal | ❌ No recomendado |
+| **Para desarrollo** | ✅ Bueno | ✅ Bueno | ✅ Ideal |
+
+### 🎯 Recomendaciones por Uso
+
+- **🏭 Laboratorio/Producción**: Docker (cualquier OS)
+- **💻 Desarrollo local**: Docker o Manual según preferencia
+- **🚀 Despliegue rápido**: Docker con scripts automáticos
+- **🔧 Debugging intensivo**: Manual para acceso directo al código
+
+---
 
 ### 5. Acceso a la Aplicación
 
@@ -206,7 +374,34 @@ curl -H "Authorization: Bearer YOUR_TOKEN" "http://localhost:8000/api/mcp/module
    - Ver todas las herramientas MCP disponibles
 3. Ideal para desarrolladores y usuarios avanzados que quieren probar las capacidades del sistema
 
-## 🔧 Configuración Avanzada
+### 🔧 Configuración Avanzada
+
+#### 📁 Archivos de Despliegue Disponibles
+
+El proyecto incluye scripts de despliegue para diferentes sistemas operativos:
+
+```
+learning_agent_web/
+├── deploy-lab.sh           # Script para Mac/Linux (Bash)
+├── deploy-lab.ps1          # Script para Windows (PowerShell)  
+├── deploy-lab.bat          # Script para Windows (CMD)
+├── docker-compose.yml      # Configuración Docker
+├── Dockerfile             # Imagen personalizada
+├── .env.docker            # Variables de entorno para Docker
+├── DEPLOYMENT_GUIDE.md     # Guía detallada de despliegue
+└── WINDOWS_DEPLOYMENT.md   # Guía específica para Windows
+```
+
+#### 🌐 URLs de Acceso (Todos los Sistemas)
+
+Una vez desplegado, estas URLs estarán disponibles independientemente del sistema operativo:
+
+- **🏠 Página Principal**: http://localhost:8000
+- **💬 Chat con IA**: http://localhost:8000/chat  
+- **📊 Dashboard**: http://localhost:8000/dashboard
+- **🛠️ Herramientas MCP**: http://localhost:8000/mcp-tools
+- **📚 API Docs**: http://localhost:8000/docs
+- **🏥 Health Check**: http://localhost:8000/api/mcp/health
 
 ### Model Context Protocol (MCP) - ¡IMPLEMENTADO! 🎉
 
@@ -531,6 +726,21 @@ grep "MCP Integration" logs/
 - **`backend/.env`**: Variables de entorno (requiere tu API key de OpenAI)
 - **`backend/requirements.txt`**: Dependencias Python actualizadas
 - **`backend/app/main.py`**: Aplicación principal FastAPI
+
+### Despliegue Docker
+
+- **`Dockerfile`**: Imagen Docker personalizada con Python 3.11
+- **`docker-compose.yml`**: Configuración de servicios (app + Redis)
+- **`.env.docker`**: Variables de entorno específicas para Docker
+- **`deploy-lab.sh`**: Script automático para Mac/Linux
+- **`deploy-lab.ps1`**: Script automático para Windows (PowerShell)
+- **`deploy-lab.bat`**: Script automático para Windows (CMD)
+
+### Documentación
+
+- **`DEPLOYMENT_GUIDE.md`**: Guía completa de despliegue para laboratorio
+- **`WINDOWS_DEPLOYMENT.md`**: Guía específica para Windows con troubleshooting
+- **`README.md`**: Este archivo con toda la documentación
 
 ### Datos y Configuración
 

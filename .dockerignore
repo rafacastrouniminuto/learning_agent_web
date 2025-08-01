@@ -1,0 +1,10 @@
+# Ignorar archivos específicos de Docker
+.env.docker
+docker-compose.override.yml
+
+# Directorios de datos persistentes
+data/
+logs/
+
+# Archivos temporales de Docker
+.dockerignore

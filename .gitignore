@@ -97,6 +97,7 @@ temp/
 # API Keys and sensitive data
 .env.local
 .env.production
+.env.docker
 secrets.txt
 keys/
 
