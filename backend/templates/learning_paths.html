@@ -16,8 +16,48 @@
             <p id="studentProfile" class="student-profile"></p>
         </div>
         
+        <!-- Controles de filtrado y paginación -->
+        <div class="filter-controls" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; display: none;" id="filterControls">
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <label for="categoryFilter" style="margin-right: 5px; font-weight: 500;">📁 Categoría:</label>
+                    <select id="categoryFilter" style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Todas las categorías</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="searchFilter" style="margin-right: 5px; font-weight: 500;">🔍 Buscar:</label>
+                    <input type="text" id="searchFilter" placeholder="Buscar eje temático..." 
+                           style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; width: 200px;">
+                </div>
+                <div>
+                    <label style="margin-right: 5px; font-weight: 500;">📄 Mostrar:</label>
+                    <select id="itemsPerPage" style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="6">6 por página</option>
+                        <option value="9" selected>9 por página</option>
+                        <option value="12">12 por página</option>
+                        <option value="all">Todos</option>
+                    </select>
+                </div>
+                <div id="resultsInfo" style="color: #666; font-size: 14px;"></div>
+            </div>
+        </div>
+        
         <div id="learningModules" class="modules-grid">
             <!-- Modules will be dynamically inserted here -->
+        </div>
+        
+        <!-- Controles de paginación -->
+        <div class="pagination-controls" id="paginationControls" style="display: none; margin-top: 20px; text-align: center;">
+            <div style="display: inline-flex; gap: 10px; align-items: center;">
+                <button id="prevPage" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    ← Anterior
+                </button>
+                <span id="pageInfo" style="margin: 0 15px; font-weight: 500;"></span>
+                <button id="nextPage" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Siguiente ->
+                </button>
+            </div>
         </div>
         
         <div class="path-footer">
@@ -76,27 +116,354 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if there's a generated learning path
-    const generatedPath = sessionStorage.getItem('generatedLearningPath');
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🔍 DEBUG - Page loaded, checking for learning path data');
     
-    if (generatedPath) {
-        try {
-            const pathData = JSON.parse(generatedPath);
-            displayLearningPath(pathData);
-        } catch (error) {
-            console.error('Error parsing learning path:', error);
+    // Get current user info for sessionStorage key
+    let currentUser = null;
+    try {
+        console.log('🔍 DEBUG - Checking authentication...');
+        
+        // Get token from localStorage
+        const token = localStorage.getItem('access_token');
+        console.log('🔍 DEBUG - Token found in localStorage:', token ? 'Yes' : 'No');
+        
+        if (!token) {
+            console.log('❌ No token found - redirecting to login');
+            window.location.href = '/login';
+            return;
+        }
+        
+        const userResp = await fetch('/auth/me', { 
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        console.log('🔍 DEBUG - Auth response status:', userResp.status);
+        
+        if (userResp.ok) {
+            currentUser = await userResp.json();
+            console.log('✅ User authenticated:', currentUser.email);
+        } else if (userResp.status === 401 || userResp.status === 403) {
+            console.log('❌ Authentication failed: Invalid token - redirecting to login');
+            localStorage.removeItem('access_token');
+            window.location.href = '/login';
+            return;
+        } else {
+            console.log('❌ Auth error with status:', userResp.status);
+            window.location.href = '/login';
+            return;
+        }
+    } catch (e) {
+        console.log('❌ Auth request failed:', e);
+        console.log('❌ Redirecting to login due to auth failure');
+        window.location.href = '/login';
+        return;
+    }
+    
+    const userKey = currentUser ? `_user_${currentUser.id}` : '_anonymous';
+    const sessionKey = `generatedLearningPath${userKey}`;
+    const chatHistoryKey = `chatHistory${userKey}`;
+    
+    console.log('🔍 DEBUG - Looking for learning path with key:', sessionKey);
+    console.log('🔍 DEBUG - All sessionStorage keys:', Object.keys(sessionStorage));
+    
+    // IMPORTANTE: Limpiar sessionStorage de otros usuarios para evitar contaminación
+    const allKeys = Object.keys(sessionStorage);
+    for (const key of allKeys) {
+        if (key.startsWith('generatedLearningPath_user_') && key !== sessionKey) {
+            console.log('🔍 DEBUG - Removing sessionStorage for different user:', key);
+            sessionStorage.removeItem(key);
         }
     }
+    
+    // PRIORIDAD 1: Intentar obtener datos del backend (más confiable)
+    console.log('🔍 DEBUG - Checking backend first (more reliable)');
+    try {
+        const token = localStorage.getItem('access_token');
+        const resp = await fetch('/api/learning-paths/latest', { 
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        console.log('🔍 DEBUG - Backend response status:', resp.status);
+        if (resp.ok) {
+            const json = await resp.json();
+            console.log('🔍 DEBUG - Backend response data:', json);
+            if (json.item && json.item.data && json.item.data.modules && json.item.data.modules.length > 0) {
+                console.log('✅ Found valid learning path in backend');
+                // Guardar en sessionStorage para futuros accesos
+                sessionStorage.setItem(sessionKey, JSON.stringify(json.item.data));
+                displayLearningPath(json.item.data);
+                return;
+            } else {
+                console.log('🔍 DEBUG - No valid learning path found in backend');
+            }
+        } else {
+            console.log('🔍 DEBUG - Backend request failed with status:', resp.status);
+        }
+    } catch (e) {
+        console.log('🔍 DEBUG - Backend request error:', e);
+    }
+    
+    // PRIORIDAD 2: Solo si el backend no tiene datos, revisar sessionStorage
+    console.log('🔍 DEBUG - Checking sessionStorage as fallback');
+    
+    const generatedPath = sessionStorage.getItem(sessionKey);
+    if (generatedPath) {
+        try {
+            const parsed = JSON.parse(generatedPath);
+            console.log('🔍 DEBUG - Found sessionStorage data for current user');
+            console.log('🔍 DEBUG - Number of modules in sessionStorage:', parsed?.modules?.length || 'No modules');
+            
+            // Verificar si el formato es el actual (con array modules) y tiene módulos válidos
+            if (parsed.modules && Array.isArray(parsed.modules) && parsed.modules.length > 0) {
+                console.log('✅ Using sessionStorage data as fallback');
+                displayLearningPath(parsed);
+                return;
+            } else {
+                console.log('🔍 DEBUG - Invalid sessionStorage format, clearing');
+                sessionStorage.removeItem(sessionKey);
+            }
+        } catch (e) {
+            console.error('❌ Error parsing sessionStorage:', e); 
+            sessionStorage.removeItem(sessionKey);
+        }
+    }
+    
+    // Si llegamos aquí, no hay datos válidos - usar CSV fallback
+    console.log('🔍 DEBUG - Using CSV fallback data');
+    
+    // Intentar obtener la cantidad solicitada desde sessionStorage de una conversación previa
+    let requestedCount = null; // No limitar por defecto, mostrar todos
+    const chatHistory = sessionStorage.getItem(chatHistoryKey);
+    if (chatHistory) {
+        try {
+            const history = JSON.parse(chatHistory);
+            const lastUserMessage = history.filter(msg => msg.role === 'user').pop();
+            if (lastUserMessage && lastUserMessage.content) {
+                const message = lastUserMessage.content.toLowerCase();
+                if (message.includes('3 primeros') || message.includes('primeros 3')) {
+                    requestedCount = 3;
+                } else if (message.includes('4 primeros') || message.includes('primeros 4')) {
+                    requestedCount = 4;
+                } else if (message.includes('5 primeros') || message.includes('primeros 5')) {
+                    requestedCount = 5;
+                } else if (message.includes('6') || message.includes('todos')) {
+                    requestedCount = 6;
+                }
+                console.log(`🔍 DEBUG - Detected requested count from chat history: ${requestedCount}`);
+            }
+        } catch (e) {
+            console.log('🔍 DEBUG - Could not parse chat history, using default count');
+        }
+    }
+    
+    displayLearningPath({modules: [], requestedCount: requestedCount});
 });
 
 function displayLearningPath(pathData) {
+    console.log('🔍 DEBUG - displayLearningPath called with:', pathData);
+    console.log('🔍 DEBUG - Number of modules:', pathData.modules ? pathData.modules.length : 'No modules');
+    
     const generatedPathDiv = document.getElementById('generatedPath');
     const defaultStateDiv = document.getElementById('defaultState');
     const studentProfileEl = document.getElementById('studentProfile');
     const nextStepsEl = document.getElementById('nextSteps');
     const learningSequenceEl = document.getElementById('learningSequence');
     const modulesContainer = document.getElementById('learningModules');
+    
+    // Variables de paginación y filtrado
+    let currentPage = 1;
+    let allModules = [];
+    let filteredModules = [];
+    let itemsPerPage = 9;
+    
+    // Inicializar módulos
+    if (pathData && pathData.modules && pathData.modules.length > 0) {
+        allModules = pathData.modules;
+        console.log('🔍 DEBUG - Using provided modules');
+    } else {
+        // Usar datos de fallback del CSV
+        console.log('🔍 DEBUG - Using CSV fallback data');
+        allModules = [
+            {
+                eje_tematico: "Ecosistemas de Innovación Educativa: Bases conceptuales y evolución del enfoque STEM",
+                modulo: "FUNDAMENTOS TRANSFORMADORES STEM",
+                competencia: "Analiza críticamente los fundamentos teóricos y conceptuales del enfoque STEM+ para transformar su práctica pedagógica",
+                categoria: "Fundamentos",
+                prioridad: "alta"
+            },
+            {
+                eje_tematico: "Aprendizaje Experiencial Integrado: Fundamentos constructivistas y socioconstructivistas",
+                modulo: "FUNDAMENTOS TRANSFORMADORES STEM",
+                competencia: "Analiza críticamente los fundamentos teóricos y conceptuales del enfoque STEM+ para transformar su práctica pedagógica",
+                categoria: "Fundamentos",
+                prioridad: "alta"
+            },
+            {
+                eje_tematico: "Neurociencia y Aprendizaje Activo: Conexiones entre funcionamiento cerebral y metodología STEM",
+                modulo: "FUNDAMENTOS TRANSFORMADORES STEM",
+                competencia: "Analiza críticamente los fundamentos teóricos y conceptuales del enfoque STEM+ para transformar su práctica pedagógica",
+                categoria: "Neurociencia",
+                prioridad: "media"
+            },
+            {
+                eje_tematico: "Metodologías Activas en STEM: Aprendizaje Basado en Problemas y Proyectos",
+                modulo: "DISEÑO INSTRUCCIONAL STEM+",
+                competencia: "Diseña experiencias de aprendizaje STEM+ contextualizado que integren tecnología e innovación",
+                categoria: "Metodología",
+                prioridad: "alta"
+            },
+            {
+                eje_tematico: "Gamificación y Narrativas Digitales en STEM: Diseño de experiencias inmersivas",
+                modulo: "DISEÑO INSTRUCCIONAL STEM+",
+                competencia: "Diseña experiencias de aprendizaje STEM+ contextualizado que integren tecnología e innovación",
+                categoria: "Tecnología",
+                prioridad: "media"
+            },
+            {
+                eje_tematico: "Inteligencia Artificial en Educación: Personalización y análisis de aprendizaje",
+                modulo: "TECNOLOGÍAS EMERGENTES",
+                competencia: "Implementa tecnologías emergentes para potenciar el aprendizaje STEM+ en contextos diversos",
+                categoria: "Tecnología",
+                prioridad: "media"
+            }
+        ];
+        
+        // Solo aplicar límite si hay una ruta específicamente generada (no para exploración general)
+        if (pathData && pathData.modules && pathData.modules.length > 0 && pathData.requestedCount) {
+            allModules = allModules.slice(0, pathData.requestedCount);
+            console.log(`🔍 DEBUG - Limited to ${pathData.requestedCount} modules for generated path`);
+        } else {
+            console.log(`🔍 DEBUG - Showing all ${allModules.length} modules for exploration`);
+        }
+    }
+    
+    // Mostrar/ocultar elementos apropiados
+    if (allModules.length > 0) {
+        generatedPathDiv.style.display = 'block';
+        defaultStateDiv.style.display = 'none';
+        
+        // Mostrar controles solo si hay muchos módulos
+        const filterControls = document.getElementById('filterControls');
+        const paginationControls = document.getElementById('paginationControls');
+        
+        if (allModules.length > 8) {
+            filterControls.style.display = 'block';
+            setupFilters();
+        }
+        
+        // Configurar información inicial
+        if (pathData && pathData.perfil_estudiante) {
+            studentProfileEl.textContent = pathData.perfil_estudiante;
+        }
+        
+        if (pathData && pathData.proximos_pasos) {
+            nextStepsEl.textContent = pathData.proximos_pasos;
+        }
+        
+        if (pathData && pathData.secuencia_aprendizaje) {
+            learningSequenceEl.textContent = pathData.secuencia_aprendizaje;
+        }
+        
+        // Inicializar filtros y renderizar
+        filteredModules = [...allModules];
+        renderModules();
+        
+    } else {
+        generatedPathDiv.style.display = 'none';
+        defaultStateDiv.style.display = 'block';
+    }
+    
+    // Funciones auxiliares
+    function setupFilters() {
+        // Configurar filtro de categorías
+        const categoryFilter = document.getElementById('categoryFilter');
+        const categories = [...new Set(allModules.map(m => m.categoria || 'General'))];
+        
+        categoryFilter.innerHTML = '<option value="">Todas las categorías</option>';
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            categoryFilter.appendChild(option);
+        });
+        
+        // Event listeners
+        categoryFilter.addEventListener('change', applyFilters);
+        document.getElementById('searchFilter').addEventListener('input', applyFilters);
+        document.getElementById('itemsPerPage').addEventListener('change', changeItemsPerPage);
+        document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
+        document.getElementById('nextPage').addEventListener('click', () => changePage(1));
+    }
+    
+    function applyFilters() {
+        const categoryFilter = document.getElementById('categoryFilter').value;
+        const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+        
+        filteredModules = allModules.filter(module => {
+            const matchesCategory = !categoryFilter || (module.categoria || 'General') === categoryFilter;
+            const matchesSearch = !searchFilter || module.eje_tematico.toLowerCase().includes(searchFilter);
+            return matchesCategory && matchesSearch;
+        });
+        
+        currentPage = 1;
+        renderModules();
+        updateResultsInfo();
+    }
+    
+    function changeItemsPerPage() {
+        const newItemsPerPage = document.getElementById('itemsPerPage').value;
+        itemsPerPage = newItemsPerPage === 'all' ? filteredModules.length : parseInt(newItemsPerPage);
+        currentPage = 1;
+        renderModules();
+    }
+    
+    function changePage(direction) {
+        const totalPages = Math.ceil(filteredModules.length / itemsPerPage);
+        currentPage = Math.max(1, Math.min(totalPages, currentPage + direction));
+        renderModules();
+    }
+    
+    function renderModules() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const modulesToShow = filteredModules.slice(startIndex, endIndex);
+        
+        modulesContainer.innerHTML = '';
+        
+        modulesToShow.forEach((module, index) => {
+            const moduleCard = createModuleCard(module, startIndex + index + 1);
+            modulesContainer.appendChild(moduleCard);
+        });
+        
+        updatePagination();
+        updateResultsInfo();
+    }
+    
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredModules.length / itemsPerPage);
+        const paginationControls = document.getElementById('paginationControls');
+        
+        if (totalPages > 1) {
+            paginationControls.style.display = 'block';
+            document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages;
+        } else {
+            paginationControls.style.display = 'none';
+        }
+    }
+    
+    function updateResultsInfo() {
+        const resultsInfo = document.getElementById('resultsInfo');
+        if (resultsInfo) {
+            const startIndex = (currentPage - 1) * itemsPerPage + 1;
+            const endIndex = Math.min(currentPage * itemsPerPage, filteredModules.length);
+            resultsInfo.textContent = `Mostrando ${startIndex}-${endIndex} de ${filteredModules.length} ejes temáticos`;
+        }
+    }
     
     // Hide default state and show generated path
     defaultStateDiv.style.display = 'none';
@@ -110,23 +477,99 @@ function displayLearningPath(pathData) {
     // Clear and populate modules
     modulesContainer.innerHTML = '';
     
-    pathData.modules.forEach(module => {
-        const moduleCard = createModuleCard(module);
-        modulesContainer.appendChild(moduleCard);
-    });
+    if (pathData.modules && pathData.modules.length > 0) {
+        console.log('🔍 DEBUG - Creating cards for modules:', pathData.modules.length);
+        pathData.modules.forEach((module, index) => {
+            console.log(`🔍 DEBUG - Creating card ${index + 1}: ${module.title}`);
+            const moduleCard = createModuleCard(module);
+            modulesContainer.appendChild(moduleCard);
+        });
+    } else {
+        console.error('❌ No modules found in pathData, showing error message');
+        modulesContainer.innerHTML = '<div class="error-message">No se pudieron cargar los módulos. Por favor, intenta nuevamente.</div>';
+    }
 }
 
-function createModuleCard(module) {
+function truncateText(text, max = 100) {
+    if (!text) return '';
+    const clean = String(text).trim();
+    return clean.length > max ? clean.slice(0, max - 3) + '...' : clean;
+}
+
+function createModuleCard(module, index) {
     const card = document.createElement('div');
     card.className = 'module-card generated';
+    
+    // Manejar diferentes formatos de datos
+    const title = module.eje_tematico || module.title || 'Eje Temático';
+    const description = module.competencia || module.justification || module.description || '';
+    const categoria = module.categoria || 'General';
+    const prioridad = module.prioridad || module.priority || 'media';
+    const modulo = module.modulo || 'Módulo STEM+';
+    const duration = module.duration || '2-3 horas';
+    const progress = module.progress || 0;
+    
+    const desc = truncateText(description);
+    
+    card.innerHTML = `
+        <div class="module-header">
+            <h3>${title}</h3>
+            <div class="module-badges">
+                <span class="category-badge" style="background: ${getCategoryColor(categoria)}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">
+                    ${categoria}
+                </span>
+                <span class="priority ${prioridad}">${getPriorityText(prioridad)}</span>
+            </div>
+        </div>
+        <div class="module-content">
+            <p class="module-description">${desc}</p>
+            <div class="module-info" style="margin-top: 10px; font-size: 14px; color: #666;">
+                <div>📚 <strong>Módulo:</strong> ${modulo}</div>
+            </div>
+        </div>
+        <div class="module-footer">
+            <span class="duration">⏱️ ${duration}</span>
+            <span class="status pendiente">Pendiente</span>
+        </div>
+        <div class="module-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${progress}%"></div>
+            </div>
+            <span class="progress-text">${progress}% completado</span>
+        </div>
+    `;
+    
+    return card;
+}
+
+function getCategoryColor(categoria) {
+    const colors = {
+        'Fundamentos': '#007bff',
+        'Tecnología': '#28a745', 
+        'Metodología': '#ffc107',
+        'Neurociencia': '#6f42c1',
+        'Sostenibilidad': '#20c997',
+        'Evaluación': '#fd7e14',
+        'Innovación': '#e83e8c',
+        'Ciencia': '#17a2b8',
+        'Investigación': '#6c757d',
+        'Liderazgo': '#dc3545',
+        'General': '#343a40'
+    };
+    return colors[categoria] || colors['General'];
+}
+
+function createModuleCard_old(module) {
+    const card = document.createElement('div');
+    card.className = 'module-card generated';
+    const desc = truncateText(module.competencia || module.justification || '');
     card.innerHTML = `
         <div class="module-header">
             <h3>${module.title}</h3>
             <span class="priority ${module.priority}">${getPriorityText(module.priority)}</span>
         </div>
         <div class="module-content">
-            <p class="module-description">${module.justification}</p>
-            <p class="module-competencia"><strong>Competencia:</strong> ${module.competencia}</p>
+            <p class="module-description">${desc}</p>
         </div>
         <div class="module-footer">
             <span class="duration">⏱️ ${module.duration}</span>

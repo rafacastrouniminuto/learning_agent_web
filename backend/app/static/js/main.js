@@ -1,12 +1,16 @@
 // Living Lab UNIMINUTO - Main JavaScript
+// DEBUG VERSION - Aug 22, 2025 - Debugging frontend events - TIMESTAMP: 10:30
+console.log('🔍 DEBUG - JavaScript loaded - Version 1.2 - FIXED data.data access - TIMESTAMP: 10:30');
 
 class LearningAgent {
     constructor() {
+        console.log('🔍 DEBUG - LearningAgent constructor called');
         this.token = localStorage.getItem('access_token');
         this.sidebarVisible = true;
         this.currentConversation = [];
         this.currentMode = 'learning_path'; // Default to learning path mode
         this.generatedLearningPath = null;
+        console.log('🔍 DEBUG - Initial generatedLearningPath:', this.generatedLearningPath);
         this.init();
     }
 
@@ -291,8 +295,12 @@ class LearningAgent {
                                 }
                                 
                                 if (data.type === 'learning_path_generated') {
-                                    console.log('Learning path generated:', data.learning_path);
-                                    this.generatedLearningPath = data.learning_path;
+                                    console.log('🔍 DEBUG - Learning path generated event received!');
+                                    console.log('🔍 DEBUG - data.data:', data.data);
+                                    console.log('🔍 DEBUG - typeof data.data:', typeof data.data);
+                                    console.log('🔍 DEBUG - data.data modules length:', data.data?.modules?.length);
+                                    this.generatedLearningPath = data.data;
+                                    console.log('🔍 DEBUG - Saved to this.generatedLearningPath:', this.generatedLearningPath);
                                     this.showGeneratePathButton(messageElement);
                                     continue;
                                 }
@@ -441,7 +449,75 @@ class LearningAgent {
         }, 5000);
     }
 
-    logout() {
+    // MCP Tools helper function for authenticated requests
+    async makeAuthenticatedRequest(url, options = {}) {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            throw new Error('No authentication token found');
+        }
+
+        const headers = {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+
+        const response = await fetch(url, {
+            ...options,
+            headers
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                // Token expired or invalid
+                localStorage.removeItem('access_token');
+                window.location.href = '/login';
+                throw new Error('Authentication expired');
+            }
+            throw new Error(`Request failed: ${response.status}`);
+        }
+
+        return response.json();
+    }
+
+    async logout() {
+        // Clear only user-specific session storage, not everything
+        console.log('🔍 DEBUG - Clearing user-specific sessionStorage on logout');
+        
+        // Get current user to clear only their data
+        let currentUser = null;
+        try {
+            const userResp = await fetch('/auth/me', { credentials: 'include' });
+            if (userResp.ok) {
+                currentUser = await userResp.json();
+            }
+        } catch (e) {
+            console.log('Could not determine current user for cleanup');
+        }
+        
+        if (currentUser) {
+            const userKey = `_user_${currentUser.id}`;
+            const keysToRemove = [];
+            
+            // Find all keys that belong to this user
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key && key.includes(userKey)) {
+                    keysToRemove.push(key);
+                }
+            }
+            
+            // Remove only this user's data
+            keysToRemove.forEach(key => {
+                console.log('🔍 DEBUG - Removing user sessionStorage:', key);
+                sessionStorage.removeItem(key);
+            });
+        } else {
+            // Fallback: clear everything if we can't determine user
+            console.log('🔍 DEBUG - Fallback: clearing all sessionStorage');
+            sessionStorage.clear();
+        }
+        
         localStorage.removeItem('access_token');
         window.location.href = '/login';
     }
@@ -464,14 +540,37 @@ class LearningAgent {
     }
     
     async generateLearningPath() {
+        console.log('🔍 DEBUG - generateLearningPath called');
+        console.log('🔍 DEBUG - this.generatedLearningPath:', this.generatedLearningPath);
+        console.log('🔍 DEBUG - typeof this.generatedLearningPath:', typeof this.generatedLearningPath);
+        console.log('🔍 DEBUG - is null?:', this.generatedLearningPath === null);
+        console.log('🔍 DEBUG - is undefined?:', this.generatedLearningPath === undefined);
+        console.log('🔍 DEBUG - is falsy?:', !this.generatedLearningPath);
+        
         if (!this.generatedLearningPath) {
+            console.log('🔍 DEBUG - No learning path found - showing alert');
             alert('No hay ruta de aprendizaje disponible');
             return;
         }
         
         try {
+            // Get user-specific storage key
+            let currentUser = null;
+            try {
+                const userResp = await fetch('/auth/me', { credentials: 'include' });
+                if (userResp.ok) {
+                    currentUser = await userResp.json();
+                }
+            } catch (e) {
+                console.log('No authenticated user found');
+            }
+            
+            const userKey = currentUser ? `_user_${currentUser.id}` : '_anonymous';
+            const sessionKey = `generatedLearningPath${userKey}`;
+            
             // Store the learning path in sessionStorage to pass to learning-paths page
-            sessionStorage.setItem('generatedLearningPath', JSON.stringify(this.generatedLearningPath));
+            sessionStorage.setItem(sessionKey, JSON.stringify(this.generatedLearningPath));
+            console.log('🔍 DEBUG - Saved learning path with key:', sessionKey);
             
             // Show success message
             this.addMessageToChat('assistant', '✅ ¡Ruta de aprendizaje generada exitosamente! Puedes verla en la sección "Rutas de Aprendizaje".');
@@ -494,4 +593,7 @@ class LearningAgent {
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.learningAgent = new LearningAgent();
+    
+    // Make makeAuthenticatedRequest available globally for MCP Tools
+    window.makeAuthenticatedRequest = window.learningAgent.makeAuthenticatedRequest.bind(window.learningAgent);
 });

@@ -14,6 +14,7 @@ from .api.mcp import router as mcp_router
 from .api.reservations import router as reservations_router
 from .models.user import User
 from .models.reservation import Reservation
+from .models.learning_path import LearningPath
 from .services.mcp_service import mcp_service_instance, MCP_AVAILABLE
 from . import integrations  # Initialize MCP integration
 
@@ -123,6 +124,52 @@ async def debug_tabs(request: Request):
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "version": settings.version}
+
+@app.post("/api/learning-paths", response_model=dict)
+async def save_learning_path(payload: dict, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # Espera un objeto con la ruta generada en 'data' y opcionalmente 'title'
+    if "data" not in payload:
+        raise HTTPException(status_code=400, detail="Falta 'data' con la ruta")
+
+    # Guardar siempre una nueva versión
+    lp = LearningPath(
+        user_id=str(current_user.id),
+        title=payload.get("title") or payload["data"].get("title"),
+        data=payload["data"]
+    )
+    db.add(lp)
+    db.commit()
+    db.refresh(lp)
+    return {"id": lp.id, "title": lp.title, "created_at": str(lp.created_at)}
+
+@app.get("/api/learning-paths/me", response_model=dict)
+async def get_my_learning_paths(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    rows = db.query(LearningPath).filter(LearningPath.user_id == str(current_user.id)).order_by(LearningPath.created_at.desc()).all()
+    return {"items": [{"id": r.id, "title": r.title, "created_at": str(r.created_at), "data": r.data} for r in rows]}
+
+@app.get("/api/learning-paths/latest", response_model=dict)
+async def get_latest_learning_path(request: Request, db: Session = Depends(get_db)):
+    try:
+        # Try to get current user, but don't fail if not authenticated
+        from .api.auth import get_current_user_optional
+        current_user = await get_current_user_optional(request, db)
+        
+        if not current_user:
+            print("🔍 DEBUG - No authenticated user for learning path request")
+            return {"item": None}
+        
+        print(f"🔍 DEBUG - Looking for learning path for user {current_user.email} (ID: {current_user.id})")
+        row = db.query(LearningPath).filter(LearningPath.user_id == str(current_user.id)).order_by(LearningPath.created_at.desc()).first()
+        if not row:
+            print(f"🔍 DEBUG - No learning path found for user {current_user.email}")
+            return {"item": None}
+        
+        print(f"✅ Found learning path for user {current_user.email} created at {row.created_at}")
+        return {"item": {"id": row.id, "title": row.title, "created_at": str(row.created_at), "data": row.data}}
+    except Exception as e:
+        print(f"❌ Error getting learning path: {e}")
+        # If authentication fails, return None instead of error
+        return {"item": None}
 
 if __name__ == "__main__":
     import uvicorn

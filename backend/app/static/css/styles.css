@@ -510,16 +510,16 @@ body {
 
 .modules-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
 .module-card {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 20px;
+    padding: 16px;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -549,11 +549,18 @@ body {
 
 .module-header h3 {
     color: var(--light-text);
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     margin: 0;
     flex: 1;
     margin-right: 12px;
+    line-height: 1.3;
+    max-height: 2.6em; /* ~2 lines */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
 }
 
 .priority {
@@ -585,8 +592,13 @@ body {
 
 .module-description {
     color: var(--muted-text);
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 0.9rem;
+    max-height: 3em; /* ~2 lines */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
     margin-bottom: 12px;
 }
 
@@ -783,7 +795,7 @@ body {
     }
     
     .modules-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
     
     .path-footer {

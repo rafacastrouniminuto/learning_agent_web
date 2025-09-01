@@ -553,6 +553,25 @@ let escenarios = [];
 let herramientas = [];
 let roles = [];
 
+// Función para hacer llamadas autenticadas
+async function makeAuthenticatedRequest(url, options = {}) {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        window.location.href = '/login';
+        throw new Error('No authentication token found');
+    }
+
+    const defaultOptions = {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    };
+
+    return fetch(url, { ...defaultOptions, ...options });
+}
+
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded');
@@ -839,11 +858,8 @@ document.getElementById('reservationForm').addEventListener('submit', async func
     }
 
     try {
-        const response = await fetch('/api/reservations/', {
+        const response = await makeAuthenticatedRequest('/api/reservations/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify(data)
         });
 
@@ -882,7 +898,7 @@ async function loadUserReservations() {
     container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando reservas...</div>';
     
     try {
-        const response = await fetch('/api/reservations/');
+        const response = await makeAuthenticatedRequest('/api/reservations/');
         console.log('Respuesta del servidor:', response);
         if (response.ok) {
             const reservations = await response.json();
@@ -914,7 +930,7 @@ async function loadUserReservations() {
 async function loadAllReservations() {
     console.log('Cargando todas las reservas...');
     try {
-        const response = await fetch('/api/reservations/');
+        const response = await makeAuthenticatedRequest('/api/reservations/');
         console.log('Respuesta del servidor (todas):', response);
         if (response.ok) {
             const reservations = await response.json();
@@ -1029,7 +1045,7 @@ function displayReservations(reservations, containerId) {
 async function loadStatistics() {
     console.log('Cargando estadísticas...');
     try {
-        const response = await fetch('/api/reservations/stats/overview');
+        const response = await makeAuthenticatedRequest('/api/reservations/stats/overview');
         console.log('Respuesta del servidor (estadísticas):', response);
         if (response.ok) {
             const stats = await response.json();
@@ -1108,7 +1124,7 @@ function formatDate(dateString) {
 async function cancelReservation(nSolicitud) {
     if (confirm('¿Estás seguro de que quieres cancelar esta reserva?')) {
         try {
-            const response = await fetch(`/api/reservations/${nSolicitud}`, {
+            const response = await makeAuthenticatedRequest(`/api/reservations/${nSolicitud}`, {
                 method: 'DELETE'
             });
 

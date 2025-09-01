@@ -1,11 +1,14 @@
 import asyncio
+import re
 from typing import AsyncGenerator, Dict, Any, Optional, Tuple, List
 import openai
 import json
+from sqlalchemy.orm import Session
 from ..core.config import settings
 from .prompts import get_system_prompt, get_conversation_prompt
 from .learning_path_service import learning_path_service
 from .mcp_service import mcp_service_instance, MCP_AVAILABLE, search_learning_modules, get_available_thematic_axes, create_personalized_learning_path, get_user_learning_profile
+from ..models.learning_path import LearningPath
 
 class OpenAIService:
     def __init__(self):
@@ -92,24 +95,51 @@ class OpenAIService:
         iteration_count: int = 0
     ) -> list[Dict[str, str]]:
         """
-        Prepara los mensajes para el chat de rutas de aprendizaje
+        Prepara los mensajes para el chat de rutas de aprendizaje con gestión inteligente de tokens
         """
         conversation_history = conversation_history or []
         
-        # Obtener contexto de módulos
-        modules_context = learning_path_service.get_modules_context()
+        # Determinar si usar versión compacta basado en solicitud del usuario
+        use_compact = False
+        max_modules_in_prompt = None
         
-        # Sistema prompt con contexto
+        # Detectar si solicita muchos ejes
+        user_msg_lower = user_message.lower()
+        if any(num in user_msg_lower for num in ['13', '15', '20', '30', 'todos', 'completa']):
+            use_compact = True
+            max_modules_in_prompt = 20
+            print(f"🔍 DEBUG - Detected large request, using compact mode")
+        
+        # Obtener contexto de módulos con gestión de tokens
+        modules_context = learning_path_service.get_modules_context(
+            max_modules=max_modules_in_prompt, 
+            compact=use_compact
+        )
+        
+        print(f"🔍 DEBUG - Context length: {len(modules_context)} chars, compact: {use_compact}")
+        print(f"🔍 DEBUG - Context preview (first 300 chars):")
+        print(modules_context[:300])
+        print(f"🔍 DEBUG - Context preview (last 300 chars):")
+        print(modules_context[-300:])
+        
+        # Sistema prompt con contexto optimizado
         system_message = {
             "role": "system",
             "content": get_system_prompt(modules_context)
         }
         
-        # Construir historial de conversación
+        print(f"🔍 DEBUG - Final system prompt length: {len(system_message['content'])}")
+        print(f"🔍 DEBUG - System prompt preview:")
+        print(system_message['content'][:500] + "..." if len(system_message['content']) > 500 else system_message['content'])
+        
+        # Construir historial de conversación (limitar para ahorrar tokens)
         messages = [system_message]
         
+        # Solo incluir los últimos 2 intercambios para ahorrar tokens en solicitudes grandes
+        recent_history = conversation_history[-4:] if len(conversation_history) > 4 else conversation_history
+        
         # Agregar historial previo
-        for msg in conversation_history:
+        for msg in recent_history:
             messages.append({
                 "role": msg.get("role", "user"),
                 "content": msg.get("content", "")
@@ -174,11 +204,44 @@ class OpenAIService:
                     yield content, None
             
             print(f"🔍 Debug - Stream completed. Total chunks: {chunk_count}, Response length: {len(full_response)}")
+            print(f"🔍 Debug - Full response: {full_response[:300]}...")
             
-            # Al final del stream, intentar extraer JSON si existe
-            learning_path_json = learning_path_service.extract_json_from_response(full_response)
+            # Verificar estado del learning_path_service
+            print(f"📊 CSV modules loaded: {len(learning_path_service.modules_data) if hasattr(learning_path_service, 'modules_data') else 'No modules_data'}")
+            if hasattr(learning_path_service, 'modules_data') and learning_path_service.modules_data:
+                print(f"📋 First module: {learning_path_service.modules_data[0]}")
+            
+            # Al final del stream, buscar patrones GENERATE_PATH
+            learning_path_json = None
+            
+            # Buscar diferentes patrones de generación
+            if "GENERATE_PATH_COUNT:" in full_response:
+                print("🎯 Found GENERATE_PATH_COUNT pattern!")
+                count_match = re.search(r'GENERATE_PATH_COUNT:\s*(\d+|ALL)', full_response)
+                if count_match:
+                    print(f"🎯 Count match: {count_match.group(1)}")
+                    learning_path_json = self._generate_path_from_csv(full_response)
+                else:
+                    print("❌ No count match found")
+                        
+            elif "GENERATE_PATH_IDS:" in full_response:
+                learning_path_json = self._generate_path_from_csv(full_response)
+                    
+            elif "GENERATE_PATH_CATEGORY:" in full_response:
+                learning_path_json = self._generate_path_from_csv(full_response)
+                    
+            elif "GENERATE_PATH_MODULE:" in full_response:
+                learning_path_json = self._generate_path_from_csv(full_response)
+                    
+            elif "GENERATE_PATH_ALL" in full_response:
+                learning_path_json = self._generate_path_from_csv(full_response)
+            
+            # Fallback: buscar JSON tradicional
+            if not learning_path_json:
+                learning_path_json = learning_path_service.extract_json_from_response(full_response)
+            
             if learning_path_json:
-                print("Learning path JSON extracted successfully")
+                print("✅ Learning path generated successfully")
                 yield "", learning_path_json
                     
         except Exception as e:
@@ -186,6 +249,77 @@ class OpenAIService:
             import traceback
             traceback.print_exc()
             yield f"Error en el chat: {str(e)}", None
+
+    def _generate_path_from_csv(self, ai_response: str) -> Optional[Dict[str, Any]]:
+        """
+        Genera automáticamente un JSON de ruta de aprendizaje basado en el CSV
+        usando el comando GENERATE_PATH_COUNT del AI
+        """
+        try:
+            print("🚀 Starting _generate_path_from_csv")
+            print(f"🔍 AI Response length: {len(ai_response)}")
+            
+            # Extraer la cantidad solicitada
+            import re
+            match = re.search(r'GENERATE_PATH_COUNT:\s*(\w+)', ai_response)
+            if not match:
+                print("❌ No se encontró GENERATE_PATH_COUNT en la respuesta")
+                return None
+            
+            count_str = match.group(1).strip()
+            print(f"🔍 Detected count: {count_str}")
+            
+            # Determinar cuántos módulos generar
+            if count_str.upper() == "ALL":
+                count = len(learning_path_service.modules_data)
+            else:
+                try:
+                    count = int(count_str)
+                except ValueError:
+                    count = 5  # Default fallback
+            
+            # Limitar a los datos disponibles
+            count = min(count, len(learning_path_service.modules_data))
+            print(f"🎯 Generating path with {count} modules from CSV")
+            print(f"� Available modules in CSV: {len(learning_path_service.modules_data)}")
+            
+            # Tomar los primeros N módulos del CSV
+            selected_modules = learning_path_service.modules_data[:count]
+            print(f"✅ Selected {len(selected_modules)} modules")
+            
+            # Construir el JSON automáticamente
+            learning_path_json = {
+                "action": "generate_learning_path",
+                "student_profile": f"Usuario solicita {count_str} ejes temáticos",
+                "recommended_modules": []
+            }
+            
+            for i, module in enumerate(selected_modules):
+                path_module = {
+                    "eje_tematico": module["eje_tematico"],
+                    "modulo": module["modulo"],
+                    "competencia": module["competencia"],
+                    "categoria": module.get("categoria", "General"),
+                    "justification": "Eje fundamental según el curriculum STEM+",
+                    "priority": "alta",
+                    "estimated_duration": "3-4 semanas"
+                }
+                learning_path_json["recommended_modules"].append(path_module)
+                print(f"  {i+1}. {module['eje_tematico'][:50]}...")
+            
+            # Generar secuencia y próximos pasos
+            sequence_items = [f"{i+1}. {mod['eje_tematico'][:30]}..." for i, mod in enumerate(selected_modules[:5])]
+            learning_path_json["learning_sequence"] = " → ".join(sequence_items)
+            learning_path_json["next_steps"] = f"Comenzar con el primer eje temático y avanzar secuencialmente a través de los {count} módulos."
+            
+            print(f"✅ Generated learning path JSON with {len(learning_path_json['recommended_modules'])} modules")
+            return learning_path_json
+            
+        except Exception as e:
+            print(f"❌ Error generating path from CSV: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
 
     async def chat_completion_stream(
         self, 

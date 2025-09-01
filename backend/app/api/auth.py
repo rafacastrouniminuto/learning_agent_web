@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
@@ -111,6 +111,32 @@ async def get_current_user(
         )
     
     return user
+
+async def get_current_user_optional(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Get current authenticated user, return None if not authenticated"""
+    try:
+        # Get Authorization header manually
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return None
+            
+        token = auth_header.split(" ")[1]
+        payload = verify_token(token)
+        
+        if payload is None:
+            return None
+        
+        email = payload.get("sub")
+        if email is None:
+            return None
+        
+        user = db.query(User).filter(User.email == email).first()
+        return user
+    except Exception:
+        return None
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):

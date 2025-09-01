@@ -33,7 +33,8 @@ class LearningPathGeneratedResponse(BaseModel):
 @router.post("/stream")
 async def chat_stream(
     request: ChatRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """Stream chat response from OpenAI"""
     
@@ -58,12 +59,29 @@ async def chat_stream(
                     if learning_path_json:
                         # Se generó una ruta de aprendizaje
                         generated_learning_path = learning_path_json
+                        
+                        # Convertir al formato correcto ANTES de guardar en DB
                         formatted_path = learning_path_service.format_learning_path_for_display(learning_path_json)
                         
-                        # Enviar la ruta de aprendizaje como evento especial
+                        # Save to database if user is authenticated (usar formato correcto)
+                        try:
+                            from ..models.learning_path import LearningPath
+                            learning_path_record = LearningPath(
+                                user_id=str(current_user.id),
+                                title=f"Ruta de aprendizaje - {formatted_path.get('student_profile', 'Usuario')}",
+                                data=formatted_path  # Guardar el formato correcto con 'modules'
+                            )
+                            db.add(learning_path_record)
+                            db.commit()
+                            print(f"✅ Saved learning path to database for user {current_user.email}")
+                        except Exception as e:
+                            print(f"❌ Error saving learning path to database: {e}")
+                            db.rollback()
+                        
+                        # Enviar la ruta de aprendizaje como evento especial (ya está en formato correcto)
                         path_data = json.dumps({
                             "type": "learning_path_generated",
-                            "learning_path": formatted_path,
+                            "data": formatted_path,  # Changed from learning_path to data for consistency
                             "done": False
                         })
                         yield f"data: {path_data}\n\n"

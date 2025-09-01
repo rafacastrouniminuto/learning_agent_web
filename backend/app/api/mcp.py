@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from ..services.mcp_service import mcp_service_instance, MCP_AVAILABLE, search_learning_modules, get_available_thematic_axes, create_personalized_learning_path, get_user_learning_profile
 from .auth import get_current_user
 from ..models.user import User
+from sqlalchemy.orm import Session
+from ..core.database import get_db  # fixed path
 
 router = APIRouter(prefix="/api/mcp", tags=["MCP"])
 
@@ -143,15 +145,14 @@ class LearningPathRequest(BaseModel):
 @router.post("/learning-path/create")
 async def create_learning_path(
     request: LearningPathRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
     """Create a personalized learning path"""
     try:
         # Get user profile first
         if MCP_AVAILABLE:
             user_profile = get_user_learning_profile(str(current_user.id))
-            
-            # Create the learning path
             learning_path = create_personalized_learning_path(
                 user_profile=user_profile,
                 learning_goals=request.learning_goals,
@@ -160,15 +161,20 @@ async def create_learning_path(
             )
         else:
             user_profile = await mcp_service_instance["server"].get_user_learning_profile(str(current_user.id))
-            
-            # Create the learning path
             learning_path = await mcp_service_instance["server"].create_personalized_learning_path(
                 user_profile=user_profile,
                 learning_goals=request.learning_goals,
                 time_constraints=request.time_constraints,
                 focus_areas=request.focus_areas
             )
-        
+        # Nuevo: persistir
+        try:
+            from ..models.learning_path import LearningPath
+            lp = LearningPath(user_id=str(current_user.id), title=learning_path.get('title'), data=learning_path)
+            db.add(lp)
+            db.commit()
+        except Exception:
+            db.rollback()
         return MCPResponse(success=True, data=learning_path)
     except Exception as e:
         return MCPResponse(success=False, error=str(e))
@@ -227,6 +233,92 @@ async def get_path_progress(
                 "achievements": []
             }
         return MCPResponse(success=True, data=progress)
+    except Exception as e:
+        return MCPResponse(success=False, error=str(e))
+
+@router.get("/search-modules")
+async def search_modules_endpoint(
+    topic: str = "",
+    difficulty: str = "",
+    limit: int = 10,
+    current_user: User = Depends(get_current_user)
+):
+    """Search for learning modules"""
+    try:
+        if MCP_AVAILABLE:
+            result = await search_learning_modules(
+                topic=topic or "",
+                difficulty=difficulty or "",
+                eje_tematico="",
+                limit=limit
+            )
+        else:
+            result = await mcp_service_instance["server"].call_tool(
+                "search_learning_modules",
+                topic=topic,
+                difficulty=difficulty,
+                limit=limit
+            )
+        return MCPResponse(success=True, data={"modules": result})
+    except Exception as e:
+        return MCPResponse(success=False, error=str(e))
+
+@router.get("/thematic-axes")
+async def get_thematic_axes_endpoint(
+    current_user: User = Depends(get_current_user)
+):
+    """Get available thematic axes"""
+    try:
+        if MCP_AVAILABLE:
+            result = await get_available_thematic_axes()
+        else:
+            result = await mcp_service_instance["server"].call_tool("get_available_thematic_axes")
+        return MCPResponse(success=True, data={"axes": result})
+    except Exception as e:
+        return MCPResponse(success=False, error=str(e))
+
+@router.post("/create-path")
+async def create_path_endpoint(
+    request_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a personalized learning path"""
+    try:
+        module_ids = request_data.get("module_ids", [])
+        user_profile = request_data.get("user_profile", "Usuario estándar")
+        
+        if MCP_AVAILABLE:
+            result = await create_personalized_learning_path(
+                user_profile=user_profile,
+                learning_goals="Objetivos personalizados",
+                time_constraints="Flexible",
+                focus_areas=",".join(map(str, module_ids))
+            )
+        else:
+            result = await mcp_service_instance["server"].call_tool(
+                "create_personalized_learning_path",
+                user_profile=user_profile,
+                module_ids=module_ids
+            )
+        return MCPResponse(success=True, data={"path": result})
+    except Exception as e:
+        return MCPResponse(success=False, error=str(e))
+
+@router.get("/user-profile")
+async def get_user_profile_endpoint(
+    user_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get user learning profile"""
+    try:
+        if MCP_AVAILABLE:
+            result = await get_user_learning_profile(user_id=user_id)
+        else:
+            result = await mcp_service_instance["server"].call_tool(
+                "get_user_learning_profile",
+                user_id=user_id
+            )
+        return MCPResponse(success=True, data={"profile": result})
     except Exception as e:
         return MCPResponse(success=False, error=str(e))
 

@@ -1,534 +1,608 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCP Tools - Learning Agent</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <style>
-        .mcp-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .mcp-tool {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e0e7ff;
-        }
-        
-        .mcp-tool h3 {
-            color: var(--primary-blue);
-            margin-top: 0;
-            border-bottom: 2px solid var(--accent-cyan);
-            padding-bottom: 10px;
-        }
-        
-        .mcp-form {
-            display: grid;
-            gap: 15px;
-            margin: 15px 0;
-        }
-        
-        .mcp-form label {
-            font-weight: 600;
-            color: var(--primary-blue);
-        }
-        
-        .mcp-form input,
-        .mcp-form select,
-        .mcp-form textarea {
-            padding: 10px;
-            border: 2px solid #e0e7ff;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        
-        .mcp-form input:focus,
-        .mcp-form select:focus,
-        .mcp-form textarea:focus {
-            border-color: var(--accent-cyan);
-            outline: none;
-        }
-        
-        .mcp-btn {
-            background: linear-gradient(135deg, var(--primary-purple), var(--accent-cyan));
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s;
-        }
-        
-        .mcp-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .mcp-result {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 15px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .mcp-result pre {
-            margin: 0;
-            white-space: pre-wrap;
-            font-size: 12px;
-        }
-        
-        .mcp-status {
-            padding: 10px;
-            border-radius: 6px;
-            margin: 10px 0;
-        }
-        
-        .mcp-status.success {
-            background: #dcfce7;
-            border: 1px solid #bbf7d0;
-            color: #166534;
-        }
-        
-        .mcp-status.error {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
-        }
-        
-        .mcp-health {
-            background: linear-gradient(135deg, #10b981, #3b82f6);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-        }
-        
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        
-        .module-card {
-            background: white;
-            border: 1px solid #e0e7ff;
-            border-radius: 8px;
-            padding: 15px;
-            transition: transform 0.2s;
-        }
-        
-        .module-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .module-title {
-            font-weight: 600;
-            color: var(--primary-blue);
-            margin-bottom: 8px;
-        }
-        
-        .module-meta {
-            font-size: 12px;
-            color: #64748b;
-            margin: 5px 0;
-        }
-        
-        .difficulty-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            margin: 2px;
-        }
-        
-        .difficulty-principiante {
-            background: #dcfce7;
-            color: #166534;
-        }
-        
-        .difficulty-intermedio {
-            background: #fef3c7;
-            color: #d97706;
-        }
-        
-        .difficulty-avanzado {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                🧠 Learning Agent - MCP Tools
-            </div>
-            <div class="nav-menu">
-                <a href="/dashboard" class="nav-link">🏠 Dashboard</a>
-                <a href="/chat" class="nav-link">💬 Chat</a>
-                <a href="/learning-paths" class="nav-link">🎯 Rutas</a>
-            </div>
+{% extends "base.html" %}
+
+{% block title %}Herramientas MCP - Living Lab UNIMINUTO{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="card-header">
+        <h1 class="card-title">
+            <i class="fas fa-tools" style="margin-right: 12px;"></i>
+            Herramientas MCP
+        </h1>
+        <p class="text-muted">
+            Accede a las herramientas avanzadas del Model Context Protocol para análisis y creación personalizada
+        </p>
+    </div>
+</div>
+
+<!-- MCP Service Status -->
+<div class="card" style="margin-bottom: 30px;">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-server" style="margin-right: 8px;"></i>
+            Estado del Servicio MCP
+        </h2>
+    </div>
+    <div class="card-content">
+        <div id="mcp-health" class="mcp-status-container">
+            <p>🔄 Verificando estado del servicio MCP...</p>
         </div>
+        <!-- Test button to verify JavaScript is working -->
+        <button onclick="testFunction()" class="btn btn-secondary" type="button" style="margin-top: 10px;">
+            🧪 Probar JavaScript
+        </button>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="display: block;">
+    <!-- Search Modules Section -->
+    <div class="mcp-section">
+        <div class="mcp-section-header">
+            <h3><i class="fas fa-search"></i> Buscar Módulos de Aprendizaje</h3>
+            <p>Encuentra módulos específicos por tema, dificultad y categoría</p>
+        </div>
+        <div class="mcp-form">
+            <label for="search-topic">Tema:</label>
+            <input type="text" id="search-topic" placeholder="Ej: programación, matemáticas, ciencias">
+            
+            <label for="search-difficulty">Dificultad:</label>
+            <select id="search-difficulty">
+                <option value="">Todas</option>
+                <option value="principiante">Principiante</option>
+                <option value="intermedio">Intermedio</option>
+                <option value="avanzado">Avanzado</option>
+            </select>
+            
+            <label for="search-limit">Límite de resultados:</label>
+            <input type="number" id="search-limit" value="10" min="1" max="50">
+            
+            <button onclick="searchModules()" class="btn btn-primary" type="button">
+                <i class="fas fa-search"></i> Buscar Módulos
+            </button>
+        </div>
+        <div id="search-results" class="mcp-results"></div>
     </div>
 
-    <div class="mcp-container">
-        <div class="mcp-health" id="mcp-health">
-            <h2>🔧 MCP Service Status</h2>
-            <p>Verificando estado del servicio MCP...</p>
+    <!-- Thematic Axes Section -->
+    <div class="mcp-section">
+        <div class="mcp-section-header">
+            <h3><i class="fas fa-list-ul"></i> Ejes Temáticos Disponibles</h3>
+            <p>Explora todos los ejes temáticos disponibles en el sistema</p>
         </div>
-
-        <!-- Search Modules Tool -->
-        <div class="mcp-tool">
-            <h3>🔍 Buscar Módulos de Aprendizaje</h3>
-            <div class="mcp-form">
-                <label for="search-topic">Tema:</label>
-                <input type="text" id="search-topic" placeholder="Ej: programación, matemáticas, ciencias">
-                
-                <label for="search-difficulty">Dificultad:</label>
-                <select id="search-difficulty">
-                    <option value="all">Todas</option>
-                    <option value="principiante">Principiante</option>
-                    <option value="intermedio">Intermedio</option>
-                    <option value="avanzado">Avanzado</option>
-                </select>
-                
-                <label for="search-axis">Eje Temático:</label>
-                <select id="search-axis">
-                    <option value="all">Todos</option>
-                </select>
-                
-                <label for="search-limit">Límite de resultados:</label>
-                <input type="number" id="search-limit" value="10" min="1" max="50">
-                
-                <button class="mcp-btn" onclick="searchModules()">🔍 Buscar Módulos</button>
-            </div>
-            <div class="mcp-result" id="search-result" style="display: none;"></div>
+        <div class="mcp-form">
+            <button onclick="getThematicAxes()" class="btn btn-primary" type="button">
+                <i class="fas fa-layer-group"></i> Ver Ejes Temáticos
+            </button>
         </div>
-
-        <!-- Create Learning Path Tool -->
-        <div class="mcp-tool">
-            <h3>🎯 Crear Ruta de Aprendizaje Personalizada</h3>
-            <div class="mcp-form">
-                <label for="learning-goals">Objetivos de Aprendizaje (uno por línea):</label>
-                <textarea id="learning-goals" placeholder="Ej:&#10;Aprender programación web&#10;Desarrollar habilidades en IA&#10;Fortalecer matemáticas aplicadas" rows="4"></textarea>
-                
-                <label for="time-constraints">Restricciones de Tiempo:</label>
-                <select id="time-constraints">
-                    <option value="flexible">Flexible</option>
-                    <option value="limited">Limitado</option>
-                    <option value="intensive">Intensivo</option>
-                </select>
-                
-                <label for="focus-areas">Áreas de Enfoque (separadas por coma):</label>
-                <input type="text" id="focus-areas" placeholder="Ej: STEM, Tecnología, Ciencias">
-                
-                <button class="mcp-btn" onclick="createLearningPath()">🚀 Crear Ruta Personalizada</button>
-            </div>
-            <div class="mcp-result" id="path-result" style="display: none;"></div>
-        </div>
-
-        <!-- User Profile Tool -->
-        <div class="mcp-tool">
-            <h3>👤 Perfil de Usuario</h3>
-            <div class="mcp-form">
-                <button class="mcp-btn" onclick="getUserProfile()">📋 Obtener Mi Perfil</button>
-            </div>
-            <div class="mcp-result" id="profile-result" style="display: none;"></div>
-        </div>
-
-        <!-- Available Tools -->
-        <div class="mcp-tool">
-            <h3>🛠️ Herramientas Disponibles</h3>
-            <div class="mcp-form">
-                <button class="mcp-btn" onclick="getAvailableTools()">📋 Ver Herramientas MCP</button>
-            </div>
-            <div class="mcp-result" id="tools-result" style="display: none;"></div>
-        </div>
+        <div id="axes-results" class="mcp-results"></div>
     </div>
 
-    <script>
-        // Load thematic axes on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadThematicAxes();
-            checkMCPHealth();
-        });
-
-        async function makeAuthenticatedRequest(url, options = {}) {
-            const token = localStorage.getItem('access_token');
-            if (!token) {
-                throw new Error('No authentication token found');
-            }
-
-            const defaultOptions = {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    ...options.headers
-                }
-            };
-
-            return fetch(url, { ...defaultOptions, ...options });
-        }
-
-        async function checkMCPHealth() {
-            try {
-                const response = await makeAuthenticatedRequest('/api/mcp/health');
-                const result = await response.json();
-                
-                const healthDiv = document.getElementById('mcp-health');
-                
-                if (result.success) {
-                    const data = result.data;
-                    healthDiv.innerHTML = `
-                        <h2>✅ MCP Service Online</h2>
-                        <p><strong>Servidor:</strong> ${data.server_name} v${data.server_version}</p>
-                        <p><strong>Módulos cargados:</strong> ${data.modules_loaded}</p>
-                        <p><strong>Herramientas disponibles:</strong> ${data.tools_available}</p>
-                        <p><strong>Herramientas:</strong> ${data.tools.join(', ')}</p>
-                    `;
-                } else {
-                    healthDiv.innerHTML = `
-                        <h2>❌ MCP Service Error</h2>
-                        <p>Error: ${result.error}</p>
-                    `;
-                }
-            } catch (error) {
-                const healthDiv = document.getElementById('mcp-health');
-                healthDiv.innerHTML = `
-                    <h2>❌ Connection Error</h2>
-                    <p>No se pudo conectar al servicio MCP: ${error.message}</p>
-                `;
-            }
-        }
-
-        async function loadThematicAxes() {
-            try {
-                const response = await makeAuthenticatedRequest('/api/mcp/modules/axes');
-                const result = await response.json();
-                
-                if (result.success) {
-                    const select = document.getElementById('search-axis');
-                    result.data.forEach(axis => {
-                        const option = document.createElement('option');
-                        option.value = axis;
-                        option.textContent = axis;
-                        select.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading thematic axes:', error);
-            }
-        }
-
-        async function searchModules() {
-            const topic = document.getElementById('search-topic').value;
-            const difficulty = document.getElementById('search-difficulty').value;
-            const axis = document.getElementById('search-axis').value;
-            const limit = document.getElementById('search-limit').value;
-
-            try {
-                showStatus('search-result', 'Buscando módulos...', 'info');
-                
-                const params = new URLSearchParams({
-                    topic,
-                    difficulty,
-                    eje_tematico: axis,
-                    limit
-                });
-                
-                const response = await makeAuthenticatedRequest(`/api/mcp/modules/search?${params}`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    displayModules(result.data, 'search-result');
-                } else {
-                    showStatus('search-result', `Error: ${result.error}`, 'error');
-                }
-            } catch (error) {
-                showStatus('search-result', `Error de conexión: ${error.message}`, 'error');
-            }
-        }
-
-        async function createLearningPath() {
-            const goalsText = document.getElementById('learning-goals').value;
-            const timeConstraints = document.getElementById('time-constraints').value;
-            const focusAreasText = document.getElementById('focus-areas').value;
-
-            if (!goalsText.trim()) {
-                alert('Por favor ingresa al menos un objetivo de aprendizaje');
-                return;
-            }
-
-            try {
-                showStatus('path-result', 'Creando ruta personalizada...', 'info');
-                
-                const learningGoals = goalsText.split('\n').filter(goal => goal.trim());
-                const focusAreas = focusAreasText ? focusAreasText.split(',').map(area => area.trim()) : [];
-                
-                const response = await makeAuthenticatedRequest('/api/mcp/learning-path/create', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        learning_goals: learningGoals,
-                        time_constraints: timeConstraints,
-                        focus_areas: focusAreas
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    displayLearningPath(result.data, 'path-result');
-                } else {
-                    showStatus('path-result', `Error: ${result.error}`, 'error');
-                }
-            } catch (error) {
-                showStatus('path-result', `Error de conexión: ${error.message}`, 'error');
-            }
-        }
-
-        async function getUserProfile() {
-            try {
-                showStatus('profile-result', 'Obteniendo perfil...', 'info');
-                
-                const response = await makeAuthenticatedRequest('/api/mcp/profile');
-                const result = await response.json();
-                
-                if (result.success) {
-                    const resultDiv = document.getElementById('profile-result');
-                    resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = `
-                        <div class="mcp-status success">✅ Perfil obtenido exitosamente</div>
-                        <pre>${JSON.stringify(result.data, null, 2)}</pre>
-                    `;
-                } else {
-                    showStatus('profile-result', `Error: ${result.error}`, 'error');
-                }
-            } catch (error) {
-                showStatus('profile-result', `Error de conexión: ${error.message}`, 'error');
-            }
-        }
-
-        async function getAvailableTools() {
-            try {
-                showStatus('tools-result', 'Obteniendo herramientas...', 'info');
-                
-                const response = await makeAuthenticatedRequest('/api/mcp/tools');
-                const result = await response.json();
-                
-                if (result.success) {
-                    const resultDiv = document.getElementById('tools-result');
-                    resultDiv.style.display = 'block';
-                    resultDiv.innerHTML = `
-                        <div class="mcp-status success">✅ Herramientas MCP disponibles</div>
-                        <pre>${JSON.stringify(result.data, null, 2)}</pre>
-                    `;
-                } else {
-                    showStatus('tools-result', `Error: ${result.error}`, 'error');
-                }
-            } catch (error) {
-                showStatus('tools-result', `Error de conexión: ${error.message}`, 'error');
-            }
-        }
-
-        function showStatus(elementId, message, type) {
-            const resultDiv = document.getElementById(elementId);
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `<div class="mcp-status ${type}">${message}</div>`;
-        }
-
-        function displayModules(modules, elementId) {
-            const resultDiv = document.getElementById(elementId);
-            resultDiv.style.display = 'block';
+    <!-- Create Learning Path Section -->
+    <div class="mcp-section">
+        <div class="mcp-section-header">
+            <h3><i class="fas fa-route"></i> Crear Ruta Personalizada</h3>
+            <p>Crea una ruta de aprendizaje personalizada con módulos específicos</p>
+        </div>
+        <div class="mcp-form">
+            <label for="path-modules">Módulos (separados por coma):</label>
+            <textarea id="path-modules" rows="3" placeholder="Ej: 1,5,12,8"></textarea>
             
-            if (modules.length === 0) {
-                resultDiv.innerHTML = '<div class="mcp-status">No se encontraron módulos con los criterios especificados</div>';
-                return;
-            }
+            <label for="path-user">Perfil del Usuario:</label>
+            <textarea id="path-user" rows="2" placeholder="Descripción del perfil, objetivos, nivel..."></textarea>
             
-            let html = `<div class="mcp-status success">✅ Encontrados ${modules.length} módulos</div>`;
-            html += '<div class="modules-grid">';
-            
-            modules.forEach(module => {
-                html += `
-                    <div class="module-card">
-                        <div class="module-title">${module.nombre}</div>
-                        <div class="module-meta">
-                            <span class="difficulty-badge difficulty-${module.nivel_dificultad}">${module.nivel_dificultad}</span>
-                            <span class="difficulty-badge" style="background: #e0e7ff; color: #3730a3;">${module.eje_tematico}</span>
-                        </div>
-                        <p style="font-size: 13px; margin: 8px 0;">${module.descripcion}</p>
-                        <div class="module-meta">
-                            <strong>Duración:</strong> ${module.duracion_estimada}<br>
-                            <strong>Modalidad:</strong> ${module.modalidad}<br>
-                            <strong>Prioridad:</strong> ${module.prioridad}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            resultDiv.innerHTML = html;
-        }
+            <button onclick="createLearningPath()" class="btn btn-primary" type="button">
+                <i class="fas fa-plus"></i> Crear Ruta
+            </button>
+        </div>
+        <div id="path-results" class="mcp-results"></div>
+    </div>
 
-        function displayLearningPath(path, elementId) {
-            const resultDiv = document.getElementById(elementId);
-            resultDiv.style.display = 'block';
+    <!-- User Profile Section -->
+    <div class="mcp-section">
+        <div class="mcp-section-header">
+            <h3><i class="fas fa-user-graduate"></i> Perfil de Aprendizaje</h3>
+            <p>Obtén información del perfil de aprendizaje del usuario actual</p>
+        </div>
+        <div class="mcp-form">
+            <label for="profile-user">ID del Usuario:</label>
+            <input type="text" id="profile-user" placeholder="ID del usuario">
             
-            let html = `<div class="mcp-status success">✅ Ruta de aprendizaje creada exitosamente</div>`;
-            html += `
-                <div style="background: white; padding: 20px; border-radius: 8px; margin: 15px 0; border: 1px solid #e0e7ff;">
-                    <h4 style="color: var(--primary-blue); margin-top: 0;">${path.title}</h4>
-                    <p><strong>Duración estimada:</strong> ${path.estimated_duration}</p>
-                    <p><strong>Nivel de dificultad:</strong> ${path.difficulty_level}</p>
-                    <p><strong>Objetivos:</strong> ${path.learning_goals.join(', ')}</p>
-                    
-                    <h5>Módulos recomendados (${path.modules.length}):</h5>
-                    <div class="modules-grid">
+            <button onclick="getUserProfile()" class="btn btn-primary" type="button">
+                <i class="fas fa-user"></i> Ver Perfil
+            </button>
+        </div>
+        <div id="profile-results" class="mcp-results"></div>
+    </div>
+</div>
+
+<style>
+/* MCP Sections - replacing action cards */
+.mcp-section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin: 20px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    position: relative;
+}
+
+.mcp-section-header {
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--primary-blue);
+    padding-bottom: 15px;
+}
+
+.mcp-section-header h3 {
+    color: var(--primary-blue);
+    font-size: 20px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mcp-section-header p {
+    color: #64748b;
+    margin: 0;
+    font-size: 14px;
+}
+
+.mcp-form {
+    display: grid;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.mcp-form label {
+    font-weight: 600;
+    color: var(--primary-blue);
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.mcp-form input,
+.mcp-form select,
+.mcp-form textarea {
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    min-height: 44px;
+    transition: border-color 0.2s;
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.mcp-form input:focus,
+.mcp-form select:focus,
+.mcp-form textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mcp-form button {
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    min-height: 48px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--primary-blue), var(--accent-cyan));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.mcp-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.mcp-form button:active {
+    transform: translateY(0);
+}
+
+.mcp-results {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    display: none;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.mcp-results.show {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.mcp-status-container {
+    padding: 20px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #10b981, #3b82f6);
+    color: white;
+    font-size: 16px;
+}
+
+.mcp-status-container.error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.modules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.module-card {
+    background: white;
+    border: 1px solid #e0e7ff;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.module-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-blue);
+}
+
+.module-title {
+    font-weight: 600;
+    color: var(--primary-blue);
+    margin-bottom: 12px;
+    font-size: 18px;
+    line-height: 1.4;
+}
+
+.module-meta {
+    font-size: 14px;
+    color: #64748b;
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.difficulty-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 4px 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.difficulty-principiante {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.difficulty-intermedio {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.difficulty-avanzado {
+    background: #fee2e2;
+    color: #dc2626;
+}
+</style>
+
+<script>
+// Authentication helper function
+async function makeAuthenticatedRequest(url, options = {}) {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        window.location.href = '/login';
+        throw new Error('No authentication token found');
+    }
+
+    const defaultOptions = {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            ...options.headers
+        }
+    };
+
+    return fetch(url, { ...defaultOptions, ...options });
+}
+
+async function checkMCPHealth() {
+    try {
+        const response = await makeAuthenticatedRequest('/api/mcp/health');
+        const result = await response.json();
+        
+        console.log('MCP Health Response:', result); // Debug
+        
+        const healthDiv = document.getElementById('mcp-health');
+        
+        // Check if the response has the correct structure
+        const data = result.data || result;
+        
+        if (response.ok && (data.status === 'healthy' || result.success)) {
+            healthDiv.className = 'mcp-status-container';
+            healthDiv.innerHTML = `
+                <h3>✅ MCP Service Online</h3>
+                <p><strong>Servidor:</strong> ${data.server_name || data.server || 'learning-agent-mcp'} v${data.server_version || data.version || '1.0.0'}</p>
+                <p><strong>Módulos cargados:</strong> ${data.modules_loaded || data.modules_count || 30}</p>
+                <p><strong>Herramientas disponibles:</strong> ${data.tools_available || data.tools_count || 4}</p>
+                <p><strong>Herramientas:</strong> ${data.tools ? data.tools.join(', ') : 'search_learning_modules, get_available_thematic_axes, create_personalized_learning_path, get_user_learning_profile'}</p>
             `;
-            
-            path.modules.forEach(module => {
-                html += `
-                    <div class="module-card">
-                        <div class="module-title">${module.nombre}</div>
-                        <div class="module-meta">
-                            <span class="difficulty-badge difficulty-${module.nivel_dificultad}">${module.nivel_dificultad}</span>
-                            <span class="difficulty-badge" style="background: #e0e7ff; color: #3730a3;">${module.eje_tematico}</span>
-                        </div>
-                        <p style="font-size: 13px; margin: 8px 0;">${module.descripcion}</p>
-                        <div class="module-meta">
-                            <strong>Duración:</strong> ${module.duracion_estimada}<br>
-                            <strong>Prioridad:</strong> ${module.prioridad}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            
-            if (path.recommendations && path.recommendations.length > 0) {
-                html += `
-                    <h5>Recomendaciones:</h5>
-                    <ul>
-                        ${path.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                    </ul>
-                `;
-            }
-            
-            html += '</div>';
-            resultDiv.innerHTML = html;
+        } else {
+            throw new Error('MCP service not healthy');
         }
-    </script>
-</body>
-</html>
+    } catch (error) {
+        console.error('MCP Health Error:', error); // Debug
+        const healthDiv = document.getElementById('mcp-health');
+        healthDiv.className = 'mcp-status-container error';
+        healthDiv.innerHTML = `
+            <h3>❌ MCP Service Error</h3>
+            <p>No se pudo conectar al servicio MCP</p>
+            <p><strong>Error:</strong> ${error.message}</p>
+        `;
+    }
+}
+
+async function searchModules() {
+    console.log('🔍 searchModules function called!');
+    
+    const topic = document.getElementById('search-topic').value;
+    const difficulty = document.getElementById('search-difficulty').value;
+    const limit = parseInt(document.getElementById('search-limit').value) || 10;
+    
+    console.log('Search params:', { topic, difficulty, limit });
+    
+    const resultsDiv = document.getElementById('search-results');
+    if (!resultsDiv) {
+        console.error('Results div not found!');
+        return;
+    }
+    
+    resultsDiv.classList.add('show');
+    resultsDiv.innerHTML = '<p>🔍 Buscando módulos...</p>';
+    
+    try {
+        const params = new URLSearchParams({
+            topic: topic || '',
+            difficulty: difficulty || '',
+            limit: limit.toString()
+        });
+        
+        console.log('Making request to:', `/api/mcp/search-modules?${params}`);
+        const result = await makeAuthenticatedRequest(`/api/mcp/search-modules?${params}`);
+        
+        console.log('Search response:', result);
+        displaySearchResults(result, resultsDiv);
+        
+    } catch (error) {
+        console.error('Search error:', error);
+        resultsDiv.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+    }
+}
+
+async function getThematicAxes() {
+    console.log('📚 getThematicAxes function called!');
+    
+    const resultsDiv = document.getElementById('axes-results');
+    if (!resultsDiv) {
+        console.error('Axes results div not found!');
+        return;
+    }
+    
+    resultsDiv.classList.add('show');
+    resultsDiv.innerHTML = '<p>📚 Cargando ejes temáticos...</p>';
+    
+    try {
+        console.log('Making request to: /api/mcp/thematic-axes');
+        const result = await makeAuthenticatedRequest('/api/mcp/thematic-axes');
+        
+        console.log('Thematic axes response:', result);
+        displayThematicAxes(result, resultsDiv);
+        
+    } catch (error) {
+        console.error('Thematic axes error:', error);
+        resultsDiv.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+    }
+}
+
+async function createLearningPath() {
+    const modules = document.getElementById('path-modules').value;
+    const userProfile = document.getElementById('path-user').value;
+    
+    if (!modules.trim()) {
+        alert('Por favor ingrese los módulos');
+        return;
+    }
+    
+    const resultsDiv = document.getElementById('path-results');
+    resultsDiv.classList.add('show');
+    resultsDiv.innerHTML = '<p>🛠️ Creando ruta de aprendizaje...</p>';
+    
+    try {
+        const moduleIds = modules.split(',').map(id => id.trim()).filter(id => id);
+        
+        const result = await makeAuthenticatedRequest('/api/mcp/create-path', {
+            method: 'POST',
+            body: JSON.stringify({
+                module_ids: moduleIds,
+                user_profile: userProfile || 'Usuario estándar'
+            })
+        });
+        
+        console.log('Create path response:', result);
+        displayLearningPath(result, resultsDiv);
+        
+    } catch (error) {
+        console.error('Create path error:', error);
+        resultsDiv.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+    }
+}
+
+async function getUserProfile() {
+    const userId = document.getElementById('profile-user').value;
+    
+    if (!userId.trim()) {
+        alert('Por favor ingrese el ID del usuario');
+        return;
+    }
+    
+    const resultsDiv = document.getElementById('profile-results');
+    resultsDiv.classList.add('show');
+    resultsDiv.innerHTML = '<p>👤 Cargando perfil de usuario...</p>';
+    
+    try {
+        const result = await makeAuthenticatedRequest(`/api/mcp/user-profile?user_id=${encodeURIComponent(userId)}`);
+        console.log('User profile response:', result);
+        displayUserProfile(result, resultsDiv);
+        
+    } catch (error) {
+        console.error('User profile error:', error);
+        resultsDiv.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+    }
+}
+
+function displaySearchResults(result, container) {
+    if (!result.modules || result.modules.length === 0) {
+        container.innerHTML = '<p>No se encontraron módulos con los criterios especificados.</p>';
+        return;
+    }
+    
+    const modulesHtml = result.modules.map(module => `
+        <div class="module-card">
+            <div class="module-title">${module.titulo || module.modulo}</div>
+            <div class="module-meta">ID: ${module.id}</div>
+            <div class="module-meta">Eje: ${module.eje_tematico}</div>
+            <div class="module-meta">Competencia: ${module.competencia}</div>
+            ${module.categoria ? `<span class="difficulty-badge difficulty-${module.categoria.toLowerCase()}">${module.categoria}</span>` : ''}
+        </div>
+    `).join('');
+    
+    container.innerHTML = `
+        <h4>📋 Módulos encontrados (${result.modules.length})</h4>
+        <div class="modules-grid">${modulesHtml}</div>
+    `;
+}
+
+function displayThematicAxes(result, container) {
+    if (!result.axes || result.axes.length === 0) {
+        container.innerHTML = '<p>No se encontraron ejes temáticos.</p>';
+        return;
+    }
+    
+    const axesHtml = result.axes.map(axis => `
+        <div class="module-card">
+            <div class="module-title">${axis.name}</div>
+            <div class="module-meta">Módulos: ${axis.module_count || 0}</div>
+            ${axis.description ? `<p style="margin-top: 8px; font-size: 14px;">${axis.description}</p>` : ''}
+        </div>
+    `).join('');
+    
+    container.innerHTML = `
+        <h4>🎯 Ejes Temáticos (${result.axes.length})</h4>
+        <div class="modules-grid">${axesHtml}</div>
+    `;
+}
+
+function displayLearningPath(result, container) {
+    if (!result.path) {
+        container.innerHTML = '<p>No se pudo crear la ruta de aprendizaje.</p>';
+        return;
+    }
+    
+    const path = result.path;
+    const modulesHtml = path.modules ? path.modules.map(module => `
+        <div class="module-card">
+            <div class="module-title">${module.titulo || module.modulo}</div>
+            <div class="module-meta">Orden: ${module.orden || 'N/A'}</div>
+            <div class="module-meta">Duración: ${module.duracion || 'No especificada'}</div>
+            <p style="margin-top: 8px; font-size: 14px;">${module.competencia}</p>
+        </div>
+    `).join('') : '';
+    
+    container.innerHTML = `
+        <h4>🛤️ Ruta de Aprendizaje Creada</h4>
+        ${path.title ? `<h5>${path.title}</h5>` : ''}
+        ${path.description ? `<p>${path.description}</p>` : ''}
+        ${modulesHtml ? `<div class="modules-grid">${modulesHtml}</div>` : ''}
+    `;
+}
+
+function displayUserProfile(result, container) {
+    if (!result.profile) {
+        container.innerHTML = '<p>No se encontró información del perfil.</p>';
+        return;
+    }
+    
+    const profile = result.profile;
+    container.innerHTML = `
+        <h4>👤 Perfil de Usuario</h4>
+        <div class="module-card">
+            <div class="module-title">ID: ${profile.user_id || 'N/A'}</div>
+            <div class="module-meta">Nivel: ${profile.level || 'No especificado'}</div>
+            <div class="module-meta">Área de interés: ${profile.interests || 'No especificada'}</div>
+            <div class="module-meta">Experiencia: ${profile.experience || 'No especificada'}</div>
+            ${profile.learning_style ? `<p style="margin-top: 8px;"><strong>Estilo de aprendizaje:</strong> ${profile.learning_style}</p>` : ''}
+            ${profile.goals ? `<p><strong>Objetivos:</strong> ${profile.goals}</p>` : ''}
+        </div>
+    `;
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 MCP Tools page loaded!');
+    console.log('Available functions:', {
+        searchModules: typeof searchModules,
+        getThematicAxes: typeof getThematicAxes,
+        createLearningPath: typeof createLearningPath,
+        getUserProfile: typeof getUserProfile
+    });
+    
+    // Test that buttons exist
+    const searchBtn = document.querySelector('button[onclick="searchModules()"]');
+    const axesBtn = document.querySelector('button[onclick="getThematicAxes()"]');
+    const pathBtn = document.querySelector('button[onclick="createLearningPath()"]');
+    const profileBtn = document.querySelector('button[onclick="getUserProfile()"]');
+    
+    console.log('Buttons found:', {
+        searchBtn: !!searchBtn,
+        axesBtn: !!axesBtn,
+        pathBtn: !!pathBtn,
+        profileBtn: !!profileBtn
+    });
+    
+    checkMCPHealth();
+});
+
+// Test function to verify JavaScript is working
+function testFunction() {
+    console.log('✅ Test function works!');
+    alert('JavaScript está funcionando correctamente!');
+}
+
+// Also expose functions globally for debugging
+window.searchModules = searchModules;
+window.getThematicAxes = getThematicAxes;
+window.createLearningPath = createLearningPath;
+window.getUserProfile = getUserProfile;
+window.testFunction = testFunction;
+</script>
+{% endblock %}

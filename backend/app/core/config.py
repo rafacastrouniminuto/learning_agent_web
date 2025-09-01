@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str = ""
     openai_model: str = "gpt-3.5-turbo"
-    openai_max_tokens: int = 1000
+    openai_max_tokens: int = 6000  # Aumentado significativamente para 13-30 ejes
     
     # MCP
     mcp_server_name: str = "learning-agent-mcp"
