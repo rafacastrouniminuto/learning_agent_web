@@ -1,5 +1,4 @@
 # Docker Compose para Learning Agent Web - Living Lab UNIMINUTO
-version: '3.8'
 
 services:
   # Aplicación principal
@@ -36,8 +35,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      - redis
 
-  # Redis (opcional para caché y sesiones futuras)
+  # Redis (para caché y sesiones)
   redis:
     image: redis:7-alpine
     container_name: learning-agent-redis
