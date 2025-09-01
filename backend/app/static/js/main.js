@@ -305,6 +305,13 @@ class LearningAgent {
                                     continue;
                                 }
                                 
+                                // Nuevo: manejar recomendación que necesita aprobación
+                                if (data.action === 'show_recommendation') {
+                                    console.log('📋 Recommendation shown - waiting for approval');
+                                    this.showApprovalButton(messageElement);
+                                    continue;
+                                }
+                                
                                 if (data.done) {
                                     console.log('Stream completed by server');
                                     // Update conversation history
@@ -520,6 +527,62 @@ class LearningAgent {
         
         localStorage.removeItem('access_token');
         window.location.href = '/login';
+    }
+
+    showApprovalButton(messageElement) {
+        // Create a button to approve the recommendation
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'approval-button-container';
+        buttonContainer.style.marginTop = '15px';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '10px';
+        
+        const approveButton = document.createElement('button');
+        approveButton.className = 'btn btn-primary approve-recommendation-btn';
+        approveButton.innerHTML = '✅ Me parece bien, generar ruta';
+        approveButton.onclick = () => this.approveRecommendation();
+        
+        const modifyButton = document.createElement('button');
+        modifyButton.className = 'btn btn-secondary modify-recommendation-btn';
+        modifyButton.innerHTML = '🔄 Quiero modificar algo';
+        modifyButton.onclick = () => this.requestModification();
+        
+        buttonContainer.appendChild(approveButton);
+        buttonContainer.appendChild(modifyButton);
+        messageElement.appendChild(buttonContainer);
+        
+        this.scrollChatToBottom();
+    }
+    
+    async approveRecommendation() {
+        console.log('✅ User approved recommendation');
+        // Enviar mensaje de aprobación al chat
+        const approvalMessage = "Sí, me parece perfecto. Genera la ruta con esos cursos.";
+        await this.sendMessage(approvalMessage);
+        
+        // Deshabilitar botones
+        const approveBtn = document.querySelector('.approve-recommendation-btn');
+        const modifyBtn = document.querySelector('.modify-recommendation-btn');
+        if (approveBtn) {
+            approveBtn.disabled = true;
+            approveBtn.innerHTML = '✅ Aprobado';
+        }
+        if (modifyBtn) {
+            modifyBtn.style.display = 'none';
+        }
+    }
+    
+    async requestModification() {
+        console.log('🔄 User wants to modify recommendation');
+        // Enviar mensaje solicitando modificación
+        const modifyMessage = "Me gustaría cambiar algunos cursos de la recomendación.";
+        await this.sendMessage(modifyMessage);
+        
+        // Ocultar botones
+        const buttonContainer = document.querySelector('.approval-button-container');
+        if (buttonContainer) {
+            buttonContainer.style.display = 'none';
+        }
     }
 
     showGeneratePathButton(messageElement) {

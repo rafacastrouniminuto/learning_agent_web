@@ -1,5 +1,6 @@
 import asyncio
 import re
+import time
 from typing import AsyncGenerator, Dict, Any, Optional, Tuple, List
 import openai
 import json
@@ -88,6 +89,119 @@ class OpenAIService:
         except Exception as e:
             return {"error": str(e)}
     
+    def analyze_conversation_state(self, conversation_history: list) -> Dict[str, Any]:
+        """
+        Analiza el estado actual de la conversación para determinar qué preguntas se han hecho
+        """
+        questions_asked = {
+            "question_1_objectives": False,
+            "question_2_level": False, 
+            "question_3_time_preference": False
+        }
+        
+        user_responses = {
+            "objectives": None,
+            "level": None,
+            "time_preference": None
+        }
+        
+        recommendation_presented = False
+        user_approved_recommendation = False
+        
+        if not conversation_history:
+            return {
+                "questions_asked": questions_asked,
+                "user_responses": user_responses,
+                "recommendation_presented": recommendation_presented,
+                "user_approved_recommendation": user_approved_recommendation,
+                "ready_to_generate": False,
+                "next_action": "ask_question_1"
+            }
+        
+        # Convertir a string para análisis
+        conversation_text = ""
+        for msg in conversation_history:
+            role = msg.get("role", "")
+            content = msg.get("content", "")
+            conversation_text += f"{role}: {content}\n"
+        
+        # Detectar preguntas hechas por el asistente
+        if "Pregunta 1 de 3" in conversation_text or "objetivos de aprendizaje" in conversation_text.lower():
+            questions_asked["question_1_objectives"] = True
+            
+        if "Pregunta 2 de 3" in conversation_text or "nivel actual" in conversation_text.lower():
+            questions_asked["question_2_level"] = True
+            
+        if "Pregunta 3 de 3" in conversation_text or "organizar tu aprendizaje" in conversation_text.lower():
+            questions_asked["question_3_time_preference"] = True
+        
+        # Detectar si se presentó recomendación
+        if "CURSOS RECOMENDADOS" in conversation_text or "Te parecen bien estos cursos" in conversation_text:
+            recommendation_presented = True
+        
+        # Detectar aprobación del usuario
+        last_user_messages = []
+        for msg in reversed(conversation_history):
+            if msg.get("role") == "user":
+                last_user_messages.append(msg.get("content", "").lower())
+                if len(last_user_messages) >= 2:  # Solo revisar últimos 2 mensajes del usuario
+                    break
+        
+        approval_words = ["sí", "si", "de acuerdo", "perfecto", "generar", "crear ruta", "está bien", "me parece bien", "ok", "vale", "adelante"]
+        for user_msg in last_user_messages:
+            if any(word in user_msg for word in approval_words):
+                user_approved_recommendation = True
+                break
+        
+        # Extraer respuestas del usuario (buscar después de cada pregunta)
+        messages = conversation_history
+        for i, msg in enumerate(messages):
+            if msg.get("role") == "assistant":
+                content = msg.get("content", "")
+                # Si hay un mensaje del usuario después, es una respuesta
+                if i + 1 < len(messages) and messages[i + 1].get("role") == "user":
+                    user_response = messages[i + 1].get("content", "")
+                    
+                    if "Pregunta 1 de 3" in content and not user_responses["objectives"]:
+                        user_responses["objectives"] = user_response
+                    elif "Pregunta 2 de 3" in content and not user_responses["level"]:
+                        user_responses["level"] = user_response
+                    elif "Pregunta 3 de 3" in content and not user_responses["time_preference"]:
+                        user_responses["time_preference"] = user_response
+        
+        # Determinar próxima acción
+        next_action = "ask_question_1"
+        
+        if questions_asked["question_1_objectives"] and user_responses["objectives"]:
+            next_action = "ask_question_2"
+        if questions_asked["question_2_level"] and user_responses["level"]:
+            next_action = "ask_question_3"
+        if questions_asked["question_3_time_preference"] and user_responses["time_preference"]:
+            next_action = "present_recommendation"
+        if recommendation_presented and not user_approved_recommendation:
+            next_action = "wait_for_approval"
+        if recommendation_presented and user_approved_recommendation:
+            next_action = "generate_path"
+        
+        ready_to_generate = (
+            all([
+                questions_asked["question_1_objectives"] and user_responses["objectives"],
+                questions_asked["question_2_level"] and user_responses["level"],
+                questions_asked["question_3_time_preference"] and user_responses["time_preference"]
+            ]) and 
+            recommendation_presented and 
+            user_approved_recommendation
+        )
+        
+        return {
+            "questions_asked": questions_asked,
+            "user_responses": user_responses,
+            "recommendation_presented": recommendation_presented,
+            "user_approved_recommendation": user_approved_recommendation,
+            "ready_to_generate": ready_to_generate,
+            "next_action": next_action
+        }
+
     def prepare_learning_path_messages(
         self, 
         user_message: str, 
@@ -98,6 +212,10 @@ class OpenAIService:
         Prepara los mensajes para el chat de rutas de aprendizaje con gestión inteligente de tokens
         """
         conversation_history = conversation_history or []
+        
+        # Analizar estado de la conversación
+        conversation_state = self.analyze_conversation_state(conversation_history)
+        print(f"🔍 DEBUG - Conversation state: {conversation_state}")
         
         # Determinar si usar versión compacta basado en solicitud del usuario
         use_compact = False
@@ -117,29 +235,69 @@ class OpenAIService:
         )
         
         print(f"🔍 DEBUG - Context length: {len(modules_context)} chars, compact: {use_compact}")
-        print(f"🔍 DEBUG - Context preview (first 300 chars):")
-        print(modules_context[:300])
-        print(f"🔍 DEBUG - Context preview (last 300 chars):")
-        print(modules_context[-300:])
+        
+        # Modificar el prompt del sistema basado en el estado de la conversación
+        system_prompt = get_system_prompt(modules_context)
+        
+        # Agregar contexto adicional sobre el estado de las preguntas
+        if conversation_state["next_action"] in ["ask_question_1", "ask_question_2", "ask_question_3"]:
+            additional_context = f"""
+ESTADO ACTUAL DE LA CONVERSACIÓN:
+- Pregunta 1 (Objetivos): {'✅ Completada' if conversation_state['user_responses']['objectives'] else '❌ Pendiente'}
+- Pregunta 2 (Nivel): {'✅ Completada' if conversation_state['user_responses']['level'] else '❌ Pendiente'}  
+- Pregunta 3 (Tiempo): {'✅ Completada' if conversation_state['user_responses']['time_preference'] else '❌ Pendiente'}
+
+PRÓXIMA ACCIÓN: {conversation_state['next_action']}
+
+RECUERDA: NO generes ninguna ruta hasta completar las 3 preguntas Y obtener aprobación del usuario.
+"""
+            system_prompt += additional_context
+            
+        elif conversation_state["next_action"] == "present_recommendation":
+            additional_context = f"""
+INFORMACIÓN DEL USUARIO PARA RECOMENDACIÓN:
+- Objetivos: {conversation_state['user_responses']['objectives']}
+- Nivel: {conversation_state['user_responses']['level']}
+- Preferencias de tiempo: {conversation_state['user_responses']['time_preference']}
+
+PRÓXIMA ACCIÓN: Presentar recomendación de cursos específicos para aprobación.
+NO uses GENERATE_PATH_* todavía. El usuario debe aprobar primero la selección.
+"""
+            system_prompt += additional_context
+            
+        elif conversation_state["next_action"] == "wait_for_approval":
+            additional_context = f"""
+ESTADO: Ya presentaste la recomendación de cursos. Esperando aprobación del usuario.
+Si el usuario no está de acuerdo, permite modificar la selección.
+Solo usa GENERATE_PATH_* cuando confirme explícitamente que está de acuerdo.
+"""
+            system_prompt += additional_context
+            
+        elif conversation_state["next_action"] == "generate_path":
+            responses_summary = f"""
+INFORMACIÓN DEL USUARIO PARA PERSONALIZACIÓN:
+- Objetivos: {conversation_state['user_responses']['objectives']}
+- Nivel: {conversation_state['user_responses']['level']}
+- Preferencias de tiempo: {conversation_state['user_responses']['time_preference']}
+
+ESTADO: Usuario aprobó la recomendación. AHORA SÍ puedes usar GENERATE_PATH_* para generar la ruta.
+Usa esta información para personalizar la explicación de por qué la ruta recomendada es ideal.
+"""
+            system_prompt += responses_summary
         
         # Sistema prompt con contexto optimizado
         system_message = {
             "role": "system",
-            "content": get_system_prompt(modules_context)
+            "content": system_prompt
         }
         
         print(f"🔍 DEBUG - Final system prompt length: {len(system_message['content'])}")
-        print(f"🔍 DEBUG - System prompt preview:")
-        print(system_message['content'][:500] + "..." if len(system_message['content']) > 500 else system_message['content'])
         
-        # Construir historial de conversación (limitar para ahorrar tokens)
+        # Construir historial de conversación
         messages = [system_message]
         
-        # Solo incluir los últimos 2 intercambios para ahorrar tokens en solicitudes grandes
-        recent_history = conversation_history[-4:] if len(conversation_history) > 4 else conversation_history
-        
-        # Agregar historial previo
-        for msg in recent_history:
+        # Incluir historial completo para mantener contexto de preguntas
+        for msg in conversation_history:
             messages.append({
                 "role": msg.get("role", "user"),
                 "content": msg.get("content", "")
@@ -211,38 +369,65 @@ class OpenAIService:
             if hasattr(learning_path_service, 'modules_data') and learning_path_service.modules_data:
                 print(f"📋 First module: {learning_path_service.modules_data[0]}")
             
-            # Al final del stream, buscar patrones GENERATE_PATH
+            # Al final del stream, buscar patrones GENERATE_PATH o GENERATE_RECOMMENDATION
+            conversation_state = self.analyze_conversation_state(conversation_history or [])
             learning_path_json = None
             
-            # Buscar diferentes patrones de generación
-            if "GENERATE_PATH_COUNT:" in full_response:
-                print("🎯 Found GENERATE_PATH_COUNT pattern!")
-                count_match = re.search(r'GENERATE_PATH_COUNT:\s*(\d+|ALL)', full_response)
-                if count_match:
-                    print(f"🎯 Count match: {count_match.group(1)}")
-                    learning_path_json = self._generate_path_from_csv(full_response)
-                else:
-                    print("❌ No count match found")
+            # Si encuentra GENERATE_RECOMMENDATION, enviar evento para mostrar botón de aprobación
+            if "GENERATE_RECOMMENDATION" in full_response:
+                print("📋 Found GENERATE_RECOMMENDATION - showing approval button")
+                # Crear un objeto temporal para la recomendación
+                recommendation_data = {
+                    "action": "show_recommendation",
+                    "type": "recommendation",
+                    "message": "Recomendación presentada - esperando aprobación del usuario"
+                }
+                yield "", recommendation_data
+                return
+            
+            # Solo procesar generación de rutas si el usuario aprobó la recomendación
+            if conversation_state["ready_to_generate"] and conversation_state["next_action"] == "generate_path":
+                print("✅ User approved recommendation, processing path generation...")
+                
+                # Buscar diferentes patrones de generación
+                if "GENERATE_PATH_COUNT:" in full_response:
+                    print("🎯 Found GENERATE_PATH_COUNT pattern!")
+                    count_match = re.search(r'GENERATE_PATH_COUNT:\s*(\d+|ALL)', full_response)
+                    if count_match:
+                        print(f"🎯 Count match: {count_match.group(1)}")
+                        learning_path_json = self._generate_path_from_csv(full_response, conversation_state)
+                    else:
+                        print("❌ No count match found")
+                        # Generar ruta por defecto si no hay match
+                        learning_path_json = self._generate_default_path_from_conversation(conversation_state)
+                            
+                elif "GENERATE_PATH_IDS:" in full_response:
+                    learning_path_json = self._generate_path_from_csv(full_response, conversation_state)
                         
-            elif "GENERATE_PATH_IDS:" in full_response:
-                learning_path_json = self._generate_path_from_csv(full_response)
+                elif "GENERATE_PATH_CATEGORY:" in full_response:
+                    learning_path_json = self._generate_path_from_csv(full_response, conversation_state)
+                        
+                elif "GENERATE_PATH_MODULE:" in full_response:
+                    learning_path_json = self._generate_path_from_csv(full_response, conversation_state)
+                        
+                elif "GENERATE_PATH_ALL" in full_response:
+                    learning_path_json = self._generate_path_from_csv(full_response, conversation_state)
                     
-            elif "GENERATE_PATH_CATEGORY:" in full_response:
-                learning_path_json = self._generate_path_from_csv(full_response)
-                    
-            elif "GENERATE_PATH_MODULE:" in full_response:
-                learning_path_json = self._generate_path_from_csv(full_response)
-                    
-            elif "GENERATE_PATH_ALL" in full_response:
-                learning_path_json = self._generate_path_from_csv(full_response)
-            
-            # Fallback: buscar JSON tradicional
-            if not learning_path_json:
-                learning_path_json = learning_path_service.extract_json_from_response(full_response)
-            
-            if learning_path_json:
-                print("✅ Learning path generated successfully")
-                yield "", learning_path_json
+                else:
+                    # Si no hay patrón específico pero el usuario aprobó, generar ruta por defecto
+                    learning_path_json = self._generate_default_path_from_conversation(conversation_state)
+                
+                # Fallback: buscar JSON tradicional
+                if not learning_path_json:
+                    learning_path_json = learning_path_service.extract_json_from_response(full_response)
+                
+                if learning_path_json:
+                    print("✅ Learning path generated successfully")
+                    yield "", learning_path_json
+            else:
+                print(f"ℹ️ Next action: {conversation_state['next_action']}. Waiting for user approval.")
+                # No generar rutas hasta que el usuario apruebe la recomendación
+                pass
                     
         except Exception as e:
             print(f"❌ OpenAI API error in learning path: {str(e)}")
@@ -250,7 +435,7 @@ class OpenAIService:
             traceback.print_exc()
             yield f"Error en el chat: {str(e)}", None
 
-    def _generate_path_from_csv(self, ai_response: str) -> Optional[Dict[str, Any]]:
+    def _generate_path_from_csv(self, ai_response: str, conversation_state: Dict[str, Any] = None) -> Optional[Dict[str, Any]]:
         """
         Genera automáticamente un JSON de ruta de aprendizaje basado en el CSV
         usando el comando GENERATE_PATH_COUNT del AI
@@ -287,22 +472,60 @@ class OpenAIService:
             selected_modules = learning_path_service.modules_data[:count]
             print(f"✅ Selected {len(selected_modules)} modules")
             
+            # Construir el perfil del estudiante basado en las respuestas
+            if conversation_state and conversation_state.get("user_responses"):
+                responses = conversation_state["user_responses"]
+                student_profile = f"Objetivos: {responses.get('objectives', 'No especificado')}. "
+                student_profile += f"Nivel: {responses.get('level', 'No especificado')}. "
+                student_profile += f"Preferencias: {responses.get('time_preference', 'No especificado')}."
+            else:
+                student_profile = f"Usuario solicita {count_str} ejes temáticos"
+            
             # Construir el JSON automáticamente
             learning_path_json = {
                 "action": "generate_learning_path",
-                "student_profile": f"Usuario solicita {count_str} ejes temáticos",
+                "student_profile": student_profile,
                 "recommended_modules": []
             }
             
+            # Determinar prioridades basadas en las respuestas del usuario
+            default_priority = "media"
+            default_duration = "3-4 semanas"
+            
+            if conversation_state and conversation_state.get("user_responses"):
+                time_pref = conversation_state["user_responses"].get("time_preference", "").lower()
+                level = conversation_state["user_responses"].get("level", "").lower()
+                
+                # Ajustar duración basada en preferencias de tiempo
+                if any(word in time_pref for word in ["intensivo", "rápido", "poco tiempo"]):
+                    default_duration = "2-3 semanas"
+                elif any(word in time_pref for word in ["relajado", "flexible", "tiempo"]):
+                    default_duration = "4-5 semanas"
+                
+                # Ajustar prioridad basada en nivel
+                if any(word in level for word in ["principiante", "novato", "empiezo"]):
+                    # Para principiantes, dar alta prioridad a módulos básicos
+                    pass
+                elif any(word in level for word in ["avanzado", "experto", "experiencia"]):
+                    # Para avanzados, dar alta prioridad a módulos complejos
+                    default_priority = "alta"
+            
             for i, module in enumerate(selected_modules):
+                # Personalizar justificación basada en respuestas del usuario
+                justification = "Eje fundamental según el curriculum STEM+"
+                if conversation_state and conversation_state.get("user_responses"):
+                    objectives = conversation_state["user_responses"].get("objectives", "")
+                    if objectives:
+                        justification = f"Relevante para tus objetivos: {objectives[:100]}{'...' if len(objectives) > 100 else ''}"
+                
                 path_module = {
                     "eje_tematico": module["eje_tematico"],
                     "modulo": module["modulo"],
                     "competencia": module["competencia"],
                     "categoria": module.get("categoria", "General"),
-                    "justification": "Eje fundamental según el curriculum STEM+",
-                    "priority": "alta",
-                    "estimated_duration": "3-4 semanas"
+                    "justification": justification,
+                    "priority": default_priority,
+                    "estimated_duration": default_duration
                 }
                 learning_path_json["recommended_modules"].append(path_module)
                 print(f"  {i+1}. {module['eje_tematico'][:50]}...")
@@ -319,6 +542,85 @@ class OpenAIService:
             print(f"❌ Error generating path from CSV: {e}")
             import traceback
             traceback.print_exc()
+            return None
+
+    def _generate_default_path_from_conversation(self, messages: list[Dict[str, str]]) -> Optional[Dict]:
+        """
+        Generate a default learning path based on conversation history
+        """
+        try:
+            # Extract user preferences from conversation
+            user_topic = "General Learning"
+            user_level = "beginner"
+            user_goals = "Learn new skills"
+            
+            # Analyze conversation to extract preferences
+            conversation_text = ""
+            for msg in messages:
+                if msg.get("role") == "user":
+                    conversation_text += msg.get("content", "") + " "
+            
+            # Simple keyword extraction for topic
+            conversation_lower = conversation_text.lower()
+            if any(word in conversation_lower for word in ["python", "programming", "code"]):
+                user_topic = "Python Programming"
+            elif any(word in conversation_lower for word in ["web", "html", "css", "javascript"]):
+                user_topic = "Web Development"
+            elif any(word in conversation_lower for word in ["data", "analysis", "science"]):
+                user_topic = "Data Science"
+            elif any(word in conversation_lower for word in ["machine learning", "ai", "ml"]):
+                user_topic = "Machine Learning"
+            
+            # Determine level
+            if any(word in conversation_lower for word in ["beginner", "start", "new"]):
+                user_level = "beginner"
+            elif any(word in conversation_lower for word in ["intermediate", "some experience"]):
+                user_level = "intermediate"
+            elif any(word in conversation_lower for word in ["advanced", "expert", "experienced"]):
+                user_level = "advanced"
+            
+            # Generate a default path structure
+            learning_path = {
+                "id": f"path_{int(time.time())}",
+                "title": f"Personalized {user_topic} Learning Path",
+                "description": f"A customized learning path for {user_level} level {user_topic}",
+                "level": user_level,
+                "topic": user_topic,
+                "modules": [
+                    {
+                        "id": 1,
+                        "title": f"Introduction to {user_topic}",
+                        "description": f"Get started with the basics of {user_topic}",
+                        "duration": "2-3 hours",
+                        "resources": ["Reading materials", "Video tutorials"],
+                        "completed": False
+                    },
+                    {
+                        "id": 2,
+                        "title": f"Practical {user_topic} Exercises",
+                        "description": f"Hands-on practice with {user_topic}",
+                        "duration": "3-4 hours",
+                        "resources": ["Interactive exercises", "Practice projects"],
+                        "completed": False
+                    },
+                    {
+                        "id": 3,
+                        "title": f"Advanced {user_topic} Concepts",
+                        "description": f"Deep dive into advanced {user_topic} topics",
+                        "duration": "4-5 hours",
+                        "resources": ["Advanced tutorials", "Case studies"],
+                        "completed": False
+                    }
+                ],
+                "total_duration": "9-12 hours",
+                "created_at": time.time()
+            }
+            
+            print(f"✅ Generated default learning path for {user_topic} at {user_level} level")
+            return learning_path
+            
+        except Exception as e:
+            print(f"❌ Error generating default path: {e}")
             return None
 
     async def chat_completion_stream(
