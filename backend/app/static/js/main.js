@@ -306,8 +306,10 @@ class LearningAgent {
                                 }
                                 
                                 // Nuevo: manejar recomendación que necesita aprobación
+                                console.log('🔍 DEBUG - Checking data.action:', data.action);
                                 if (data.action === 'show_recommendation') {
                                     console.log('📋 Recommendation shown - waiting for approval');
+                                    console.log('📋 DEBUG - About to call showApprovalButton');
                                     this.showApprovalButton(messageElement);
                                     continue;
                                 }

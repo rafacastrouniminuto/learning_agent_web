@@ -52,6 +52,25 @@ def initialize_mcp_data():
         else:
             print(f"⚠️  MCP: No modules file found at {csv_path}")
     except Exception as e:
+        print(f"❌ Error loading modules: {e}")
+
+def load_evaluation_questions():
+    """Load evaluation questions from CSV"""
+    try:
+        csv_path = Path(settings.base_dir) / "data" / "preguntas_evaluacion.csv"
+        if csv_path.exists():
+            with open(csv_path, 'r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                questions = list(reader)
+                print(f"✅ Loaded {len(questions)} evaluation questions")
+                return questions
+        else:
+            print("⚠️ Evaluation questions CSV not found")
+            return []
+    except Exception as e:
+        print(f"❌ Error loading evaluation questions: {e}")
+        return []
+    except Exception as e:
         print(f"❌ MCP: Error loading modules: {e}")
 
 # Initialize MCP server with FastMCP if available
@@ -659,3 +678,51 @@ def get_mcp_service():
 # Global service instance
 mcp_service_instance = get_mcp_service()
 mcp_service = mcp_service_instance["server"]
+
+# Additional functions for evaluation questions
+def get_evaluation_questions(licenciatura=None):
+    """Get evaluation questions, optionally filtered by degree"""
+    questions = load_evaluation_questions()
+    
+    # Always include general questions
+    filtered_questions = [q for q in questions if not q.get('licenciatura_especifica') or q.get('licenciatura_especifica') == '']
+    
+    # Add specific questions for the degree if provided
+    if licenciatura:
+        specific_questions = [q for q in questions if q.get('licenciatura_especifica') == licenciatura]
+        filtered_questions.extend(specific_questions)
+    
+    return filtered_questions
+
+def format_questions_for_chat():
+    """Format questions for chat presentation"""
+    questions = load_evaluation_questions()
+    
+    formatted = {
+        "escala": [],
+        "abiertas_generales": [],
+        "abiertas_especificas": {}
+    }
+    
+    for q in questions:
+        if q['tipo'] == 'escala':
+            formatted["escala"].append({
+                "categoria": q['categoria'],
+                "pregunta": q['pregunta'],
+                "escala": f"{q['escala_min']}-{q['escala_max']}"
+            })
+        elif q['tipo'] == 'abierta':
+            if q['licenciatura_especifica']:
+                if q['licenciatura_especifica'] not in formatted["abiertas_especificas"]:
+                    formatted["abiertas_especificas"][q['licenciatura_especifica']] = []
+                formatted["abiertas_especificas"][q['licenciatura_especifica']].append({
+                    "categoria": q['categoria'],
+                    "pregunta": q['pregunta']
+                })
+            else:
+                formatted["abiertas_generales"].append({
+                    "categoria": q['categoria'],
+                    "pregunta": q['pregunta']
+                })
+    
+    return formatted

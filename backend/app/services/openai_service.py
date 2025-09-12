@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from ..core.config import settings
 from .prompts import get_system_prompt, get_conversation_prompt
 from .learning_path_service import learning_path_service
-from .mcp_service import mcp_service_instance, MCP_AVAILABLE, search_learning_modules, get_available_thematic_axes, create_personalized_learning_path, get_user_learning_profile
+from .mcp_service import mcp_service_instance, MCP_AVAILABLE, search_learning_modules, get_available_thematic_axes, create_personalized_learning_path, get_user_learning_profile, get_evaluation_questions, format_questions_for_chat
 from ..models.learning_path import LearningPath
 
 class OpenAIService:
@@ -136,22 +136,25 @@ class OpenAIService:
             questions_asked["question_3_time_preference"] = True
         
         # Detectar si se presentó recomendación
-        if "CURSOS RECOMENDADOS" in conversation_text or "Te parecen bien estos cursos" in conversation_text:
+        if "GENERATE_RECOMMENDATION" in conversation_text or "CURSOS RECOMENDADOS" in conversation_text or "Te parecen bien estos cursos" in conversation_text or "EJES TEMÁTICOS RECOMENDADOS" in conversation_text:
             recommendation_presented = True
         
-        # Detectar aprobación del usuario
+        # Detectar aprobación del usuario (solo si se presentó una recomendación)
         last_user_messages = []
         for msg in reversed(conversation_history):
             if msg.get("role") == "user":
                 last_user_messages.append(msg.get("content", "").lower())
-                if len(last_user_messages) >= 2:  # Solo revisar últimos 2 mensajes del usuario
+                if len(last_user_messages) >= 3:  # Revisar últimos 3 mensajes del usuario
                     break
         
-        approval_words = ["sí", "si", "de acuerdo", "perfecto", "generar", "crear ruta", "está bien", "me parece bien", "ok", "vale", "adelante"]
-        for user_msg in last_user_messages:
-            if any(word in user_msg for word in approval_words):
-                user_approved_recommendation = True
-                break
+        # Solo buscar aprobación si ya se presentó una recomendación
+        if recommendation_presented:
+            approval_words = ["sí", "si", "de acuerdo", "perfecto", "generar", "crear ruta", "está bien", "me parece bien", "ok", "vale", "adelante"]
+            for user_msg in last_user_messages:
+                if any(word in user_msg for word in approval_words):
+                    user_approved_recommendation = True
+                    print(f"🔍 DEBUG - Found approval in user message: '{user_msg}'")
+                    break
         
         # Extraer respuestas del usuario (buscar después de cada pregunta)
         messages = conversation_history
@@ -199,7 +202,8 @@ class OpenAIService:
             "recommendation_presented": recommendation_presented,
             "user_approved_recommendation": user_approved_recommendation,
             "ready_to_generate": ready_to_generate,
-            "next_action": next_action
+            "next_action": next_action,
+            "last_user_messages": last_user_messages  # Debug info
         }
 
     def prepare_learning_path_messages(
@@ -237,7 +241,7 @@ class OpenAIService:
         print(f"🔍 DEBUG - Context length: {len(modules_context)} chars, compact: {use_compact}")
         
         # Modificar el prompt del sistema basado en el estado de la conversación
-        system_prompt = get_system_prompt(modules_context)
+        system_prompt = get_system_prompt(modules_context, include_questions=True)
         
         # Agregar contexto adicional sobre el estado de las preguntas
         if conversation_state["next_action"] in ["ask_question_1", "ask_question_2", "ask_question_3"]:
@@ -373,7 +377,27 @@ Usa esta información para personalizar la explicación de por qué la ruta reco
             conversation_state = self.analyze_conversation_state(conversation_history or [])
             learning_path_json = None
             
+            print(f"🔍 DEBUG - Conversation state: {conversation_state}")
+            
+            # Si el estado indica que debe presentar recomendación pero no está en la respuesta, forzarlo
+            if (conversation_state["next_action"] == "present_recommendation" and 
+                "GENERATE_RECOMMENDATION" not in full_response and 
+                not conversation_state["recommendation_presented"]):
+                print("🔧 FORCING GENERATE_RECOMMENDATION pattern")
+                recommendation_data = {
+                    "action": "show_recommendation",
+                    "type": "recommendation",
+                    "message": "Recomendación lista - esperando aprobación del usuario"
+                }
+                print(f"📋 Forcing recommendation_data: {recommendation_data}")
+                yield "", recommendation_data
+                return
+            
             # Si encuentra GENERATE_RECOMMENDATION, enviar evento para mostrar botón de aprobación
+            print(f"🔍 DEBUG - Checking for GENERATE_RECOMMENDATION in response...")
+            print(f"🔍 DEBUG - Full response length: {len(full_response)}")
+            print(f"🔍 DEBUG - Last 200 chars: {full_response[-200:]}")
+            
             if "GENERATE_RECOMMENDATION" in full_response:
                 print("📋 Found GENERATE_RECOMMENDATION - showing approval button")
                 # Crear un objeto temporal para la recomendación
@@ -382,11 +406,23 @@ Usa esta información para personalizar la explicación de por qué la ruta reco
                     "type": "recommendation",
                     "message": "Recomendación presentada - esperando aprobación del usuario"
                 }
+                print(f"📋 Sending recommendation_data: {recommendation_data}")
                 yield "", recommendation_data
                 return
+            else:
+                print("❌ GENERATE_RECOMMENDATION pattern NOT found in response")
+                
+                # Si no hay recomendación pero hay GENERATE_PATH_COUNT, es un error - no generar
+                if "GENERATE_PATH_COUNT:" in full_response:
+                    print("⚠️ WARNING: Found GENERATE_PATH_COUNT without GENERATE_RECOMMENDATION - skipping generation")
+                    print(f"🔍 Conversation state: {conversation_state}")
+                    return
             
-            # Solo procesar generación de rutas si el usuario aprobó la recomendación
-            if conversation_state["ready_to_generate"] and conversation_state["next_action"] == "generate_path":
+            # Solo procesar generación de rutas si el usuario aprobó la recomendación Y se presentó la recomendación
+            if (conversation_state["ready_to_generate"] and 
+                conversation_state["next_action"] == "generate_path" and 
+                conversation_state["recommendation_presented"] and 
+                conversation_state["user_approved_recommendation"]):
                 print("✅ User approved recommendation, processing path generation...")
                 
                 # Buscar diferentes patrones de generación

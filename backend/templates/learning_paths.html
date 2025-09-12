@@ -513,15 +513,15 @@ function createModuleCard(module, index) {
     
     card.innerHTML = `
         <div class="module-header">
-            <h3>${title}</h3>
-            <div class="module-badges">
+            <h3 style="margin-bottom: 12px; font-size: 16px; font-weight: 600; color: white;">${title}</h3>
+        </div>
+        <div class="module-content">
+            <div class="module-badges" style="margin-bottom: 10px;">
                 <span class="category-badge" style="background: ${getCategoryColor(categoria)}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">
                     ${categoria}
                 </span>
                 <span class="priority ${prioridad}">${getPriorityText(prioridad)}</span>
             </div>
-        </div>
-        <div class="module-content">
             <p class="module-description">${desc}</p>
             <div class="module-info" style="margin-top: 10px; font-size: 14px; color: #666;">
                 <div>📚 <strong>Módulo:</strong> ${modulo}</div>
