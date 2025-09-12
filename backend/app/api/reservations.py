@@ -13,6 +13,8 @@ from ..schemas.reservation import (
     HerramientasEnum
 )
 from ..services.reservation_service import reservation_service
+from ..api.auth import get_current_user
+from ..models.user import User
 
 router = APIRouter(prefix="/api/reservations", tags=["reservations"])
 
@@ -22,6 +24,9 @@ async def create_reservation(
     db: Session = Depends(get_db)
 ):
     """Crear una nueva reserva del Living Lab"""
+    print(f"🆕 CREATE RESERVATION DEBUG - Recibida solicitud de creación")
+    print(f"📋 CREATE RESERVATION DEBUG - Datos: {reservation}")
+    
     try:
         # Verificar disponibilidad (opcional)
         # availability = reservation_service.check_availability(
@@ -67,6 +72,38 @@ async def get_reservations(
     
     reservations = reservation_service.get_reservations(db, filters, user_email)
     return reservations
+
+@router.get("/me")
+async def get_my_reservations(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    """Obtener todas las reservas del usuario actual"""
+    try:
+        # Usar el método correcto con filtros básicos y user_email
+        filters = ReservationFilter()  # Filtros por defecto
+        reservations = reservation_service.get_reservations(db, filters, current_user.email)
+        
+        # Convertir a formato serializable
+        reservations_data = []
+        for reservation in reservations:
+            reservation_dict = {
+                'id': str(reservation.n_solicitud),
+                'escenario': reservation.escenario_de_la_reserva if hasattr(reservation, 'escenario_de_la_reserva') else None,
+                'herramientas': reservation.herramientas,
+                'participantes': reservation.n_participantes,
+                'fecha_inicio': reservation.fecha_reserva.isoformat() if reservation.fecha_reserva else None,
+                'fecha_fin': None,  # El modelo actual no tiene fecha_fin
+                'estado': reservation.status if hasattr(reservation, 'status') else 'activa',
+                'notas': reservation.objetivo,
+                'created_at': reservation.fecha_de_solicitud.isoformat() if reservation.fecha_de_solicitud else None
+            }
+            reservations_data.append(reservation_dict)
+        
+        return reservations_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting reservations: {str(e)}")
+        return reservations_data
+    except Exception as e:
+        print(f"❌ API DEBUG - Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting reservations: {str(e)}")
 
 @router.get("/{n_solicitud}", response_model=ReservationResponse)
 async def get_reservation(

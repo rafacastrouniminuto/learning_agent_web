@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Debug</title>
+</head>
+<body>
+    <h1>Test de Debugging</h1>
+    <div id="output"></div>
+    <button onclick="testFunction()">Test</button>
+    
+    <script>
+        console.log('🚀 SCRIPT CARGADO - Test Debug iniciado');
+        
+        function testFunction() {
+            console.log('🖱️ BOTÓN CLICKEADO');
+            document.getElementById('output').innerHTML = 'Función ejecutada!';
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOM CARGADO');
+            document.getElementById('output').innerHTML = 'DOM cargado correctamente';
+        });
+    </script>
+</body>
+</html>

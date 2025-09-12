@@ -105,6 +105,16 @@ async def reservations_page(request: Request):
     """Reservations management page"""
     return templates.TemplateResponse("reservations.html", {"request": request})
 
+@app.get("/my-reservations")
+async def my_reservations_page(request: Request):
+    """Página de mis reservas"""
+    return templates.TemplateResponse("my_reservations_simple.html", {"request": request})
+
+@app.get("/test-debug")
+async def test_debug_page(request: Request):
+    """Página de test de debugging"""
+    return templates.TemplateResponse("test_debug.html", {"request": request})
+
 @app.get("/test-frontend", response_class=HTMLResponse)
 async def test_frontend(request: Request):
     """Test frontend page"""
