@@ -659,4 +659,74 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Make makeAuthenticatedRequest available globally for MCP Tools
     window.makeAuthenticatedRequest = window.learningAgent.makeAuthenticatedRequest.bind(window.learningAgent);
+    
+    // Auto-completar campos de reservas si estamos en la página de reservas
+    if (window.location.pathname === '/reservations') {
+        console.log('🎯 Detectada página de reservas - configurando auto-completado');
+        setTimeout(autoCompleteReservationFields, 1000); // Esperar 1 segundo para que todo cargue
+    }
 });
+
+// Función para auto-completar campos de reservas
+async function autoCompleteReservationFields() {
+    console.log('🔄 Iniciando auto-completado de reservas...');
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            console.log('❌ No hay token de acceso');
+            return;
+        }
+        
+        const response = await fetch('/auth/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const user = await response.json();
+            console.log('✅ Usuario obtenido para auto-completado:', user.email);
+            
+            // Auto-completar email
+            const emailInput = document.getElementById('correo');
+            if (emailInput) {
+                emailInput.value = user.email;
+                emailInput.style.backgroundColor = '#f8f9fa';
+                emailInput.style.color = '#6c757d';
+                emailInput.setAttribute('readonly', true);
+                console.log('✅ Email auto-completado:', user.email);
+            } else {
+                console.log('⚠️ Campo email no encontrado');
+            }
+            
+            // Auto-completar nombre
+            const nombreInput = document.getElementById('nombre');
+            if (nombreInput) {
+                let name = '';
+                if (user.first_name && user.last_name) {
+                    name = `${user.first_name} ${user.last_name}`;
+                } else if (user.first_name) {
+                    name = user.first_name;
+                } else if (user.last_name) {
+                    name = user.last_name;
+                } else {
+                    name = user.email.split('@')[0];
+                }
+                
+                nombreInput.value = name;
+                nombreInput.style.backgroundColor = '#f8f9fa';
+                nombreInput.style.color = '#6c757d';
+                nombreInput.setAttribute('readonly', true);
+                console.log('✅ Nombre auto-completado:', name);
+            } else {
+                console.log('⚠️ Campo nombre no encontrado');
+            }
+            
+        } else {
+            console.log('❌ Error obteniendo usuario:', response.status);
+        }
+    } catch (error) {
+        console.error('❌ Error en auto-completado:', error);
+    }
+}

@@ -50,6 +50,8 @@ class ReservationService:
     ) -> List[Reservation]:
         """Obtener reservas con filtros"""
         
+        print(f"🔍 SERVICE DEBUG - get_reservations llamado con user_email: {user_email}")
+        
         query = db.query(Reservation)
         
         # Filtro por usuario (si se especifica)

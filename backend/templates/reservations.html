@@ -30,6 +30,15 @@
         font-weight: 500;
         color: var(--text-muted);
         transition: all 0.3s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tab-button:hover {
+        color: var(--primary-purple);
+        background: rgba(124, 58, 237, 0.1);
     }
 
     .tab-button.active {
@@ -38,11 +47,14 @@
     }
 
     .tab-content {
-        display: none;
+        display: none !important;
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
 
     .tab-content.active {
-        display: block;
+        display: block !important;
+        opacity: 1;
     }
 
     .form-grid {
@@ -285,19 +297,19 @@
     </div>
 
     <div class="reservation-tabs">
-        <button class="tab-button active" data-tab="nueva-reserva">
+        <button class="tab-button active" data-tab="nueva-reserva" style="pointer-events: auto; z-index: 10; position: relative;">
             <i class="fas fa-plus"></i>
             Nueva Reserva
         </button>
-        <button class="tab-button" data-tab="mis-reservas">
+        <a href="/my-reservations" class="tab-button" style="text-decoration: none; pointer-events: auto; z-index: 10; position: relative;">
             <i class="fas fa-list"></i>
             Mis Reservas
-        </button>
-        <button class="tab-button" data-tab="todas-reservas">
+        </a>
+        <button class="tab-button" data-tab="todas-reservas" style="pointer-events: auto; z-index: 10; position: relative;">
             <i class="fas fa-calendar"></i>
             Todas las Reservas
         </button>
-        <button class="tab-button" data-tab="estadisticas">
+        <button class="tab-button" data-tab="estadisticas" style="pointer-events: auto; z-index: 10; position: relative;">
             <i class="fas fa-chart-bar"></i>
             Estadísticas
         </button>
@@ -313,11 +325,12 @@
                 </h2>
             </div>
             
-            <form id="reservationForm">
+            <form id="reservationForm" onsubmit="return false;">
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="nombre">Nombre Completo <span class="required">*</span></label>
-                        <input type="text" id="nombre" name="nombre" class="form-input" required>
+                        <input type="text" id="nombre" name="nombre" class="form-input" required readonly style="background-color: #f8f9fa; color: #6c757d;">
+                        <small class="form-text">Este campo se completa automáticamente con tus datos de usuario</small>
                     </div>
 
                     <div class="form-group">
@@ -327,7 +340,46 @@
 
                     <div class="form-group">
                         <label for="correo">Correo Electrónico <span class="required">*</span></label>
-                        <input type="email" id="correo" name="correo" class="form-input" required>
+                        <input type="email" id="correo" name="correo" class="form-input" required readonly style="background-color: #f8f9fa; color: #6c757d;">
+                        <small class="form-text">Este campo se completa automáticamente con tu email de usuario</small>
+                        
+                        <!-- SCRIPT DIRECTO AQUÍ MISMO -->
+                        <script>
+                        (async function() {
+                            console.log('🔥 SCRIPT DIRECTO EJECUTÁNDOSE');
+                            try {
+                                const token = localStorage.getItem('access_token');
+                                if (token) {
+                                    const response = await fetch('/auth/me', {
+                                        headers: { 'Authorization': `Bearer ${token}` }
+                                    });
+                                    if (response.ok) {
+                                        const user = await response.json();
+                                        console.log('✅ Usuario:', user.email);
+                                        
+                                        // Llenar email
+                                        const emailField = document.getElementById('correo');
+                                        if (emailField) {
+                                            emailField.value = user.email;
+                                            console.log('✅ Email llenado');
+                                        }
+                                        
+                                        // Llenar nombre
+                                        const nameField = document.getElementById('nombre');
+                                        if (nameField) {
+                                            const name = user.first_name && user.last_name 
+                                                ? `${user.first_name} ${user.last_name}`
+                                                : user.email.split('@')[0];
+                                            nameField.value = name;
+                                            console.log('✅ Nombre llenado:', name);
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('❌ Error:', e);
+                            }
+                        })();
+                        </script>
                     </div>
 
                     <div class="form-group">
@@ -417,7 +469,7 @@
                 </div>
 
                 <div style="text-align: center; margin-top: 30px;">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="createReservationBtn">
                         <i class="fas fa-save"></i>
                         Crear Reserva
                     </button>
@@ -426,44 +478,73 @@
                         Limpiar Formulario
                     </button>
                 </div>
+
+                <!-- Script inmediato para el botón -->
+                <script>
+                console.log('🔥 SCRIPT INMEDIATO EJECUTÁNDOSE...');
+                
+                setTimeout(function() {
+                    const btn = document.getElementById('createReservationBtn');
+                    const form = document.getElementById('reservationForm');
+                    
+                    console.log('🔥 Botón encontrado:', btn ? 'SÍ' : 'NO');
+                    console.log('🔥 Formulario encontrado:', form ? 'SÍ' : 'NO');
+                    
+                    if (btn && form) {
+                        btn.addEventListener('click', async function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            console.log('🔥 CLICK INTERCEPTADO!');
+                            
+                            // Recopilar datos
+                            const formData = new FormData(form);
+                            const data = {
+                                nombre: formData.get('nombre'),
+                                rol_de_quien_reserva: formData.get('rol_de_quien_reserva'),
+                                correo: formData.get('correo'),
+                                numero_de_telefono: formData.get('numero_de_telefono') || null,
+                                fecha_reserva: formData.get('fecha_reserva'),
+                                escenario_de_la_reserva: formData.getAll('escenario_de_la_reserva'),
+                                horario: formData.get('horario'),
+                                n_participantes: parseInt(formData.get('n_participantes')),
+                                objetivo: formData.get('objetivo'),
+                                herramientas: formData.getAll('herramientas')
+                            };
+                            
+                            console.log('🔥 Datos:', data);
+                            
+                            try {
+                                const token = localStorage.getItem('access_token');
+                                const response = await fetch('/api/reservations/', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify(data)
+                                });
+                                
+                                if (response.ok) {
+                                    const reservation = await response.json();
+                                    alert(`🎉 Reserva #${reservation.n_solicitud} creada!`);
+                                    window.location.href = '/my-reservations';
+                                } else {
+                                    const errorText = await response.text();
+                                    console.error('❌ Error:', errorText);
+                                    alert(`❌ Error: ${errorText}`);
+                                }
+                            } catch (error) {
+                                console.error('❌ Error:', error);
+                                alert('❌ Error de conexión');
+                            }
+                        });
+                    } else {
+                        console.error('🔥 No se encontraron elementos necesarios');
+                    }
+                }, 100); // Esperar 100ms para que el DOM esté listo
+                </script>
             </form>
-        </div>
-    </div>
-
-    <!-- Tab: Mis Reservas -->
-    <div id="mis-reservas" class="tab-content">
-        <div class="filters-section">
-            <h3>Filtros</h3>
-            <div class="filters-grid">
-                <div class="form-group">
-                    <label for="filterEscenario">Escenario</label>
-                    <select id="filterEscenario" class="form-select">
-                        <option value="">Todos los escenarios</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="filterStatus">Estado</label>
-                    <select id="filterStatus" class="form-select">
-                        <option value="">Todos los estados</option>
-                        <option value="active">Activa</option>
-                        <option value="cancelled">Cancelada</option>
-                        <option value="completed">Completada</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <button id="applyFilters" class="btn btn-primary">
-                        <i class="fas fa-filter"></i>
-                        Aplicar Filtros
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="misReservasList" class="reservations-list">
-            <div class="loading">
-                <i class="fas fa-spinner fa-spin"></i>
-                Cargando reservas...
-            </div>
         </div>
     </div>
 
@@ -552,6 +633,10 @@ let currentReservations = [];
 let escenarios = [];
 let herramientas = [];
 let roles = [];
+let currentUser = null;
+
+// Log inmediato para verificar que el script se carga
+console.log('🎯 SCRIPT DE RESERVAS CARGADO - Verificando auto-completado');
 
 // Función para hacer llamadas autenticadas
 async function makeAuthenticatedRequest(url, options = {}) {
@@ -572,47 +657,171 @@ async function makeAuthenticatedRequest(url, options = {}) {
     return fetch(url, { ...defaultOptions, ...options });
 }
 
+// Función para obtener datos del usuario actual
+async function getCurrentUser() {
+    console.log('🔍 getCurrentUser: Iniciando...');
+    try {
+        const token = localStorage.getItem('access_token');
+        console.log('🔑 Token disponible:', token ? 'Sí' : 'No');
+        
+        if (!token) {
+            console.log('❌ No hay token, redirigiendo a login...');
+            window.location.href = '/login';
+            return null;
+        }
+        
+        const response = await fetch('/auth/me', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        console.log('📡 Respuesta de /auth/me:', response.status);
+        
+        if (response.ok) {
+            currentUser = await response.json();
+            console.log('✅ Usuario autenticado:', currentUser.email);
+            console.log('👤 Datos del usuario:', currentUser);
+            
+            // Autocompletar email en el formulario
+            const emailInput = document.getElementById('correo');
+            console.log('🔍 Buscando campo email:', emailInput ? 'Encontrado' : 'NO ENCONTRADO');
+            if (emailInput && currentUser.email) {
+                emailInput.value = currentUser.email;
+                emailInput.removeAttribute('readonly');
+                emailInput.setAttribute('readonly', true);
+                console.log('✅ Email autocompletado:', currentUser.email);
+            }
+            
+            // Autocompletar nombre en el formulario
+            const nombreInput = document.getElementById('nombre');
+            console.log('🔍 Buscando campo nombre:', nombreInput ? 'Encontrado' : 'NO ENCONTRADO');
+            if (nombreInput) {
+                let name = '';
+                if (currentUser.first_name && currentUser.last_name) {
+                    name = `${currentUser.first_name} ${currentUser.last_name}`;
+                } else if (currentUser.first_name) {
+                    name = currentUser.first_name;
+                } else if (currentUser.last_name) {
+                    name = currentUser.last_name;
+                } else {
+                    // Usar la parte del email antes del @
+                    name = currentUser.email.split('@')[0];
+                }
+                
+                nombreInput.value = name;
+                nombreInput.removeAttribute('readonly');
+                nombreInput.setAttribute('readonly', true);
+                console.log('✅ Nombre autocompletado:', name);
+            }
+            
+            return currentUser;
+        } else {
+            console.log('❌ Error en respuesta:', response.status);
+            window.location.href = '/login';
+            return null;
+        }
+    } catch (error) {
+        console.error('❌ Error obteniendo usuario actual:', error);
+        window.location.href = '/login';
+        return null;
+    }
+}
+
 // Inicialización
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded');
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 DOM Content Loaded - Inicializando sistema de reservas...');
     
-    // Debug - verificar elementos
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-    console.log('Tab buttons encontrados:', tabButtons.length);
-    console.log('Tab contents encontrados:', tabContents.length);
-    
-    tabButtons.forEach((btn, index) => {
-        const dataTab = btn.getAttribute('data-tab');
-        console.log(`Tab button ${index}: data-tab="${dataTab}"`);
-    });
-    
-    initializeTabs();
-    
-    // Establecer fecha mínima como hoy
-    const fechaInput = document.getElementById('fecha_reserva');
-    if (fechaInput) {
-        const today = new Date().toISOString().split('T')[0];
-        fechaInput.min = today;
+    try {
+        // Esperar un momento para que el DOM esté completamente listo
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Obtener información del usuario actual primero
+        await getCurrentUser();
+        
+        // Esperar otro momento después de obtener el usuario
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Configurar pestañas
+        console.log('⏰ Iniciando configuración de pestañas...');
+        initializeTabs();
+        
+        // Establecer fecha mínima como hoy
+        const fechaInput = document.getElementById('fecha_reserva');
+        if (fechaInput) {
+            const today = new Date().toISOString().split('T')[0];
+            fechaInput.min = today;
+            console.log('✅ Fecha mínima establecida:', today);
+        }
+        
+        // Agregar event listeners a los checkboxes
+        setupCheckboxEventListeners();
+        
+        // Cargar datos iniciales
+        console.log('🔄 Cargando datos iniciales...');
+        await loadEnums();
+        
+        console.log('✅ Inicialización completada');
+        
+    } catch (error) {
+        console.error('❌ Error durante la inicialización:', error);
     }
     
-    // Agregar event listeners a los checkboxes
-    setupCheckboxEventListeners();
-    
-    // Agregar un pequeño delay para asegurar que todo esté cargado
-    setTimeout(() => {
-        loadEnums();
-        loadUserReservations();
-    }, 100);
-    
-    // Agregar event listeners para los botones de filtros
-    document.getElementById('applyFilters')?.addEventListener('click', function() {
-        loadUserReservations();
-    });
-    
+    // Agregar event listeners para los botones de filtros restantes
     document.getElementById('applyAllFilters')?.addEventListener('click', function() {
         loadAllReservations();
     });
+    
+    // Agregar funcionalidad de prueba inmediata para las pestañas
+    console.log('🧪 Agregando funcionalidad de emergencia para pestañas...');
+    
+    // Función de emergencia para cambiar pestañas
+    window.switchTab = function(tabId) {
+        console.log(`🔧 Función de emergencia - cambiando a: ${tabId}`);
+        
+        // Ocultar todos los contenidos
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.style.display = 'none';
+            content.classList.remove('active');
+        });
+        
+        // Desactivar todos los botones
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Mostrar el contenido seleccionado
+        const targetContent = document.getElementById(tabId);
+        const targetButton = document.querySelector(`[data-tab="${tabId}"]`);
+        
+        if (targetContent && targetButton) {
+            targetContent.style.display = 'block';
+            targetContent.classList.add('active');
+            targetButton.classList.add('active');
+            console.log(`✅ Tab cambiado exitosamente a: ${tabId}`);
+            
+            // Cargar datos
+            if (tabId === 'mis-reservas') {
+                loadUserReservations();
+            } else if (tabId === 'todas-reservas') {
+                loadAllReservations();
+            } else if (tabId === 'estadisticas') {
+                loadStatistics();
+            }
+        }
+    };
+    
+    // Agregar clicks directos como backup
+    setTimeout(() => {
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.onclick = function() {
+                const tabId = this.getAttribute('data-tab');
+                console.log(`🖱️ Click directo en: ${tabId}`);
+                window.switchTab(tabId);
+            };
+        });
+        console.log('🔄 Event listeners directos agregados');
+    }, 500);
 });
 
 function setupCheckboxEventListeners() {
@@ -638,62 +847,54 @@ function setupCheckboxEventListeners() {
     });
 }
 
-// Gestión de tabs
+// Gestión simple de tabs restantes
 function initializeTabs() {
-    console.log('🔧 Inicializando tabs...');
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
+    console.log('🔧 Inicializando tabs restantes...');
     
-    console.log('Elementos encontrados:', {
-        tabButtons: tabButtons.length,
-        tabContents: tabContents.length
-    });
-
-    tabButtons.forEach((button, index) => {
-        const dataTab = button.getAttribute('data-tab');
-        console.log(`Configurando event listener para tab ${index}: "${dataTab}"`);
+    const tabButtons = document.querySelectorAll('.tab-button[data-tab]');
+    console.log(`📊 Configurando ${tabButtons.length} botones restantes`);
+    
+    tabButtons.forEach(button => {
+        const tabId = button.getAttribute('data-tab');
+        console.log(`🔗 Configurando: ${tabId}`);
         
-        button.addEventListener('click', (e) => {
+        button.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('🖱️ Click en tab:', dataTab);
+            console.log(`🖱️ Click en: ${tabId}`);
             
-            const targetTab = button.getAttribute('data-tab');
-            console.log('Cambiando a tab:', targetTab);
-            
-            // Remover clases activas
-            tabButtons.forEach(btn => {
-                btn.classList.remove('active');
-                console.log('Removido active de:', btn.getAttribute('data-tab'));
-            });
-            tabContents.forEach(content => {
-                content.classList.remove('active');
-                console.log('Removido active de content:', content.id);
-            });
-            
-            // Agregar clase activa
-            button.classList.add('active');
-            const targetElement = document.getElementById(targetTab);
-            if (targetElement) {
-                targetElement.classList.add('active');
-                console.log('✅ Activado tab:', targetTab);
-            } else {
-                console.error('❌ No se encontró elemento con ID:', targetTab);
-            }
-            
-            // Cargar datos según tab
-            if (targetTab === 'mis-reservas') {
-                console.log('📋 Cargando "Mis Reservas"...');
-                loadUserReservations();
-            } else if (targetTab === 'todas-reservas') {
-                console.log('📋 Cargando "Todas las Reservas"...');
-                loadAllReservations();
-            } else if (targetTab === 'estadisticas') {
-                console.log('📊 Cargando "Estadísticas"...');
-                loadStatistics();
+            // Solo cambiar pestañas locales (no "mis-reservas" que ahora es un enlace)
+            if (tabId === 'nueva-reserva' || tabId === 'todas-reservas' || tabId === 'estadisticas') {
+                // Desactivar todos los botones
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Ocultar todos los contenidos
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Activar el seleccionado
+                this.classList.add('active');
+                const targetContent = document.getElementById(tabId);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                    console.log(`✅ Activado: ${tabId}`);
+                    
+                    // Cargar datos según el tab
+                    setTimeout(() => {
+                        if (tabId === 'todas-reservas') {
+                            loadAllReservations();
+                        } else if (tabId === 'estadisticas') {
+                            loadStatistics();
+                        }
+                    }, 100);
+                }
             }
         });
     });
-    console.log('✅ Tabs inicializados correctamente');
+    
+    console.log('✅ Tabs restantes inicializados');
 }
 
 // Cargar enums desde la API
@@ -818,114 +1019,6 @@ function populateHerramientas() {
     console.log('Herramientas pobladas completamente');
 }
 
-// Gestión del formulario de reserva
-document.getElementById('reservationForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const data = {
-        nombre: formData.get('nombre'),
-        rol_de_quien_reserva: formData.get('rol_de_quien_reserva'),
-        correo: formData.get('correo'),
-        numero_de_telefono: formData.get('numero_de_telefono') || null,
-        fecha_reserva: formData.get('fecha_reserva'),
-        escenario_de_la_reserva: Array.from(formData.getAll('escenario_de_la_reserva')),
-        horario: formData.get('horario'),
-        n_participantes: parseInt(formData.get('n_participantes')),
-        objetivo: formData.get('objetivo'),
-        herramientas: Array.from(formData.getAll('herramientas'))
-    };
-
-    // Validar que al menos un escenario esté seleccionado
-    if (data.escenario_de_la_reserva.length === 0) {
-        showNotification('⚠️ Debe seleccionar al menos un escenario', 'warning');
-        return;
-    }
-
-    // Validar que al menos una herramienta esté seleccionada
-    if (data.herramientas.length === 0) {
-        showNotification('⚠️ Debe seleccionar al menos una herramienta', 'warning');
-        return;
-    }
-
-    // Validar que la fecha no sea en el pasado
-    const fechaReserva = new Date(data.fecha_reserva);
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    if (fechaReserva < hoy) {
-        showNotification('⚠️ La fecha de reserva no puede ser en el pasado', 'warning');
-        return;
-    }
-
-    try {
-        const response = await makeAuthenticatedRequest('/api/reservations/', {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-
-        if (response.ok) {
-            const reservation = await response.json();
-            showNotification(`🎉 Reserva #${reservation.n_solicitud} creada exitosamente`, 'success');
-            this.reset();
-            document.querySelectorAll('.checkbox-item').forEach(item => {
-                item.classList.remove('selected');
-                item.querySelector('input[type="checkbox"]').checked = false;
-            });
-            
-            // Opcional: cambiar a la pestaña de "Mis Reservas" para ver la reserva creada
-            // const misReservasTab = document.querySelector('[data-tab="mis-reservas"]');
-            // misReservasTab.click();
-        } else {
-            const error = await response.json();
-            showNotification(`❌ Error: ${error.detail}`, 'error');
-        }
-    } catch (error) {
-        console.error('Error creando reserva:', error);
-        showNotification('❌ Error de conexión al crear la reserva', 'error');
-    }
-});
-
-// Cargar reservas del usuario
-async function loadUserReservations() {
-    console.log('🔄 Cargando reservas del usuario...');
-    const container = document.getElementById('misReservasList');
-    if (!container) {
-        console.error('❌ No se encontró el contenedor misReservasList');
-        return;
-    }
-    
-    // Mostrar loading
-    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Cargando reservas...</div>';
-    
-    try {
-        const response = await makeAuthenticatedRequest('/api/reservations/');
-        console.log('Respuesta del servidor:', response);
-        if (response.ok) {
-            const reservations = await response.json();
-            console.log('Reservas cargadas:', reservations);
-            displayReservations(reservations, 'misReservasList');
-        } else {
-            console.error('Error en la respuesta:', response.status);
-            container.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error cargando reservas</h3>
-                    <p>No se pudieron cargar las reservas (Error ${response.status}). <button onclick="loadUserReservations()" class="btn btn-primary btn-small">Reintentar</button></p>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Error de conexión</h3>
-                <p>No se pudo conectar con el servidor. <button onclick="loadUserReservations()" class="btn btn-primary btn-small">Reintentar</button></p>
-            </div>
-        `;
-    }
-}
-
 // Cargar todas las reservas
 async function loadAllReservations() {
     console.log('Cargando todas las reservas...');
@@ -954,9 +1047,16 @@ async function loadAllReservations() {
 
 // Mostrar reservas
 function displayReservations(reservations, containerId) {
+    console.log(`📋 Mostrando ${reservations.length} reservas en ${containerId}`);
     const container = document.getElementById(containerId);
     
+    if (!container) {
+        console.error(`❌ No se encontró el contenedor ${containerId}`);
+        return;
+    }
+    
     if (reservations.length === 0) {
+        console.log('📭 No hay reservas para mostrar');
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-calendar-times"></i>
@@ -967,6 +1067,7 @@ function displayReservations(reservations, containerId) {
         return;
     }
 
+    console.log('🔄 Renderizando tarjetas de reservas...');
     container.innerHTML = reservations.map(reservation => `
         <div class="reservation-card">
             <div class="reservation-header">
@@ -1203,5 +1304,85 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
 </script>
+
+<!-- Script independiente para manejo del formulario -->
+<script>
+console.log('🚀 SCRIPT INDEPENDIENTE EJECUTÁNDOSE...');
+
+// Asegurar que DOM esté cargado
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 DOM listo - Script de formulario ejecutándose...');
+    const form = document.getElementById('reservationForm');
+    console.log('📋 Formulario encontrado:', form ? 'SÍ' : 'NO');
+
+    if (form) {
+        // Evento en el botón submit en lugar del formulario
+        const submitButton = form.querySelector('button[type="submit"]');
+        console.log('🔘 Botón submit encontrado:', submitButton ? 'SÍ' : 'NO');
+        
+        if (submitButton) {
+            submitButton.addEventListener('click', async function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🔄 BOTÓN CLICK INTERCEPTADO - Enviando via JSON...');
+                alert('🔄 BOTÓN CLICK INTERCEPTADO!'); // Debug visual
+                
+                // Recopilar datos del formulario
+                const formData = new FormData(form);
+                
+                // Convertir a JSON format que espera el backend
+                const data = {
+                    nombre: formData.get('nombre'),
+                    rol_de_quien_reserva: formData.get('rol_de_quien_reserva'),
+                    correo: formData.get('correo'),
+                    numero_de_telefono: formData.get('numero_de_telefono') || null,
+                    fecha_reserva: formData.get('fecha_reserva'),
+                    escenario_de_la_reserva: formData.getAll('escenario_de_la_reserva'), // Array
+                    horario: formData.get('horario'),
+                    n_participantes: parseInt(formData.get('n_participantes')),
+                    objetivo: formData.get('objetivo'),
+                    herramientas: formData.getAll('herramientas') // Array
+                };
+                
+                console.log('📝 Datos a enviar:', data);
+                
+                try {
+                    const token = localStorage.getItem('access_token');
+                    const response = await fetch('/api/reservations/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    console.log('📡 Respuesta del servidor:', response.status);
+                    
+                    if (response.ok) {
+                        const reservation = await response.json();
+                        console.log('✅ Reserva creada exitosamente:', reservation);
+                        alert(`🎉 Reserva #${reservation.n_solicitud} creada exitosamente`);
+                        
+                        // Redirigir a Mis Reservas
+                        window.location.href = '/my-reservations';
+                    } else {
+                        const errorText = await response.text();
+                        console.error('❌ Error del servidor:', errorText);
+                        alert(`❌ Error creando reserva: ${errorText}`);
+                    }
+                } catch (error) {
+                    console.error('❌ Error de conexión:', error);
+                    alert('❌ Error de conexión al crear la reserva');
+                }
+            });
+        }
+    } else {
+        console.error('❌ No se encontró el formulario');
+    }
+});
+</script>
+
 {% endblock %}
