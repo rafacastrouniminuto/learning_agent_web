@@ -1,16 +1,16 @@
-// Living Lab UNIMINUTO - Main JavaScript
+﻿// Living Lab UNIMINUTO - Main JavaScript
 // DEBUG VERSION - Aug 22, 2025 - Debugging frontend events - TIMESTAMP: 10:30
-console.log('🔍 DEBUG - JavaScript loaded - Version 1.2 - FIXED data.data access - TIMESTAMP: 10:30');
+console.log('ðŸ” DEBUG - JavaScript loaded - Version 1.2 - FIXED data.data access - TIMESTAMP: 10:30');
 
 class LearningAgent {
     constructor() {
-        console.log('🔍 DEBUG - LearningAgent constructor called');
+        console.log('ðŸ” DEBUG - LearningAgent constructor called');
         this.token = localStorage.getItem('access_token');
         this.sidebarVisible = true;
         this.currentConversation = [];
         this.currentMode = 'learning_path'; // Default to learning path mode
         this.generatedLearningPath = null;
-        console.log('🔍 DEBUG - Initial generatedLearningPath:', this.generatedLearningPath);
+        console.log('ðŸ” DEBUG - Initial generatedLearningPath:', this.generatedLearningPath);
         this.init();
     }
 
@@ -25,12 +25,12 @@ class LearningAgent {
         if (toggle) {
             if (this.sidebarVisible) {
                 toggle.classList.add('sidebar-visible');
-                toggle.innerHTML = '←';
-                toggle.title = 'Ocultar menú';
+                toggle.innerHTML = 'â†';
+                toggle.title = 'Ocultar menÃº';
             } else {
                 toggle.classList.remove('sidebar-visible');
-                toggle.innerHTML = '→';
-                toggle.title = 'Mostrar menú';
+                toggle.innerHTML = 'â†’';
+                toggle.title = 'Mostrar menÃº';
             }
         }
     }
@@ -84,20 +84,20 @@ class LearningAgent {
             sidebar.classList.remove('hidden');
             content.classList.remove('expanded');
             toggle.classList.add('sidebar-visible');
-            toggle.innerHTML = '←';
-            toggle.title = 'Ocultar menú';
+            toggle.innerHTML = 'â†';
+            toggle.title = 'Ocultar menÃº';
         } else {
             sidebar.classList.add('hidden');
             content.classList.add('expanded');
             toggle.classList.remove('sidebar-visible');
-            toggle.innerHTML = '→';
-            toggle.title = 'Mostrar menú';
+            toggle.innerHTML = 'â†’';
+            toggle.title = 'Mostrar menÃº';
         }
     }
 
     async checkAuth() {
         if (!this.token) {
-            // Si no está en login o register page, redirigir a login
+            // Si no estÃ¡ en login o register page, redirigir a login
             if (!window.location.pathname.includes('login') && !window.location.pathname.includes('register')) {
                 window.location.href = '/login';
             }
@@ -155,11 +155,11 @@ class LearningAgent {
                 this.token = data.access_token;
                 window.location.href = '/dashboard';
             } else {
-                this.showError(data.detail || 'Error al iniciar sesión');
+                this.showError(data.detail || 'Error al iniciar sesiÃ³n');
             }
         } catch (error) {
             console.error('Login error:', error);
-            this.showError('Error de conexión. Intenta nuevamente.');
+            this.showError('Error de conexiÃ³n. Intenta nuevamente.');
         } finally {
             this.setLoading(submitBtn, false);
         }
@@ -190,7 +190,7 @@ class LearningAgent {
             const data = await response.json();
 
             if (response.ok) {
-                this.showSuccess('Cuenta creada exitosamente. Por favor inicia sesión.');
+                this.showSuccess('Cuenta creada exitosamente. Por favor inicia sesiÃ³n.');
                 // Redirect to login after successful registration
                 setTimeout(() => {
                     window.location.href = '/login';
@@ -200,7 +200,7 @@ class LearningAgent {
             }
         } catch (error) {
             console.error('Register error:', error);
-            this.showError('Error de conexión. Intenta nuevamente.');
+            this.showError('Error de conexiÃ³n. Intenta nuevamente.');
         } finally {
             this.setLoading(submitBtn, false);
         }
@@ -226,7 +226,7 @@ class LearningAgent {
             await this.sendChatMessage(message);
         } catch (error) {
             console.error('Chat error:', error);
-            this.addMessageToChat('assistant', 'Lo siento, ocurrió un error. Intenta nuevamente.');
+            this.addMessageToChat('assistant', 'Lo siento, ocurriÃ³ un error. Intenta nuevamente.');
         } finally {
             typingIndicator.remove();
         }
@@ -295,21 +295,21 @@ class LearningAgent {
                                 }
                                 
                                 if (data.type === 'learning_path_generated') {
-                                    console.log('🔍 DEBUG - Learning path generated event received!');
-                                    console.log('🔍 DEBUG - data.data:', data.data);
-                                    console.log('🔍 DEBUG - typeof data.data:', typeof data.data);
-                                    console.log('🔍 DEBUG - data.data modules length:', data.data?.modules?.length);
+                                    console.log('ðŸ” DEBUG - Learning path generated event received!');
+                                    console.log('ðŸ” DEBUG - data.data:', data.data);
+                                    console.log('ðŸ” DEBUG - typeof data.data:', typeof data.data);
+                                    console.log('ðŸ” DEBUG - data.data modules length:', data.data?.modules?.length);
                                     this.generatedLearningPath = data.data;
-                                    console.log('🔍 DEBUG - Saved to this.generatedLearningPath:', this.generatedLearningPath);
+                                    console.log('ðŸ” DEBUG - Saved to this.generatedLearningPath:', this.generatedLearningPath);
                                     this.showGeneratePathButton(messageElement);
                                     continue;
                                 }
                                 
-                                // Nuevo: manejar recomendación que necesita aprobación
-                                console.log('🔍 DEBUG - Checking data.action:', data.action);
+                                // Nuevo: manejar recomendaciÃ³n que necesita aprobaciÃ³n
+                                console.log('ðŸ” DEBUG - Checking data.action:', data.action);
                                 if (data.action === 'show_recommendation') {
-                                    console.log('📋 Recommendation shown - waiting for approval');
-                                    console.log('📋 DEBUG - About to call showApprovalButton');
+                                    console.log('ðŸ“‹ Recommendation shown - waiting for approval');
+                                    console.log('ðŸ“‹ DEBUG - About to call showApprovalButton');
                                     this.showApprovalButton(messageElement);
                                     continue;
                                 }
@@ -491,7 +491,7 @@ class LearningAgent {
 
     async logout() {
         // Clear only user-specific session storage, not everything
-        console.log('🔍 DEBUG - Clearing user-specific sessionStorage on logout');
+        console.log('ðŸ” DEBUG - Clearing user-specific sessionStorage on logout');
         
         // Get current user to clear only their data
         let currentUser = null;
@@ -518,12 +518,12 @@ class LearningAgent {
             
             // Remove only this user's data
             keysToRemove.forEach(key => {
-                console.log('🔍 DEBUG - Removing user sessionStorage:', key);
+                console.log('ðŸ” DEBUG - Removing user sessionStorage:', key);
                 sessionStorage.removeItem(key);
             });
         } else {
             // Fallback: clear everything if we can't determine user
-            console.log('🔍 DEBUG - Fallback: clearing all sessionStorage');
+            console.log('ðŸ” DEBUG - Fallback: clearing all sessionStorage');
             sessionStorage.clear();
         }
         
@@ -541,12 +541,12 @@ class LearningAgent {
         
         const approveButton = document.createElement('button');
         approveButton.className = 'btn btn-primary approve-recommendation-btn';
-        approveButton.innerHTML = '✅ Me parece bien, generar ruta';
+        approveButton.innerHTML = 'âœ… Me parece bien, generar ruta';
         approveButton.onclick = () => this.approveRecommendation();
         
         const modifyButton = document.createElement('button');
         modifyButton.className = 'btn btn-secondary modify-recommendation-btn';
-        modifyButton.innerHTML = '🔄 Quiero modificar algo';
+        modifyButton.innerHTML = 'ðŸ”„ Quiero modificar algo';
         modifyButton.onclick = () => this.requestModification();
         
         buttonContainer.appendChild(approveButton);
@@ -557,9 +557,9 @@ class LearningAgent {
     }
     
     async approveRecommendation() {
-        console.log('✅ User approved recommendation');
-        // Enviar mensaje de aprobación al chat
-        const approvalMessage = "Sí, me parece perfecto. Genera la ruta con esos cursos.";
+        console.log('âœ… User approved recommendation');
+        // Enviar mensaje de aprobaciÃ³n al chat
+        const approvalMessage = "SÃ­, me parece perfecto. Genera la ruta con esos cursos.";
         await this.sendMessage(approvalMessage);
         
         // Deshabilitar botones
@@ -567,7 +567,7 @@ class LearningAgent {
         const modifyBtn = document.querySelector('.modify-recommendation-btn');
         if (approveBtn) {
             approveBtn.disabled = true;
-            approveBtn.innerHTML = '✅ Aprobado';
+            approveBtn.innerHTML = 'âœ… Aprobado';
         }
         if (modifyBtn) {
             modifyBtn.style.display = 'none';
@@ -575,9 +575,9 @@ class LearningAgent {
     }
     
     async requestModification() {
-        console.log('🔄 User wants to modify recommendation');
-        // Enviar mensaje solicitando modificación
-        const modifyMessage = "Me gustaría cambiar algunos cursos de la recomendación.";
+        console.log('ðŸ”„ User wants to modify recommendation');
+        // Enviar mensaje solicitando modificaciÃ³n
+        const modifyMessage = "Me gustarÃ­a cambiar algunos cursos de la recomendaciÃ³n.";
         await this.sendMessage(modifyMessage);
         
         // Ocultar botones
@@ -595,7 +595,7 @@ class LearningAgent {
         
         const generateButton = document.createElement('button');
         generateButton.className = 'btn btn-primary generate-path-btn';
-        generateButton.innerHTML = '🚀 Generar Ruta de Aprendizaje';
+        generateButton.innerHTML = 'ðŸš€ Generar Ruta de Aprendizaje';
         generateButton.onclick = () => this.generateLearningPath();
         
         buttonContainer.appendChild(generateButton);
@@ -605,15 +605,15 @@ class LearningAgent {
     }
     
     async generateLearningPath() {
-        console.log('🔍 DEBUG - generateLearningPath called');
-        console.log('🔍 DEBUG - this.generatedLearningPath:', this.generatedLearningPath);
-        console.log('🔍 DEBUG - typeof this.generatedLearningPath:', typeof this.generatedLearningPath);
-        console.log('🔍 DEBUG - is null?:', this.generatedLearningPath === null);
-        console.log('🔍 DEBUG - is undefined?:', this.generatedLearningPath === undefined);
-        console.log('🔍 DEBUG - is falsy?:', !this.generatedLearningPath);
+        console.log('ðŸ” DEBUG - generateLearningPath called');
+        console.log('ðŸ” DEBUG - this.generatedLearningPath:', this.generatedLearningPath);
+        console.log('ðŸ” DEBUG - typeof this.generatedLearningPath:', typeof this.generatedLearningPath);
+        console.log('ðŸ” DEBUG - is null?:', this.generatedLearningPath === null);
+        console.log('ðŸ” DEBUG - is undefined?:', this.generatedLearningPath === undefined);
+        console.log('ðŸ” DEBUG - is falsy?:', !this.generatedLearningPath);
         
         if (!this.generatedLearningPath) {
-            console.log('🔍 DEBUG - No learning path found - showing alert');
+            console.log('ðŸ” DEBUG - No learning path found - showing alert');
             alert('No hay ruta de aprendizaje disponible');
             return;
         }
@@ -635,16 +635,16 @@ class LearningAgent {
             
             // Store the learning path in sessionStorage to pass to learning-paths page
             sessionStorage.setItem(sessionKey, JSON.stringify(this.generatedLearningPath));
-            console.log('🔍 DEBUG - Saved learning path with key:', sessionKey);
+            console.log('ðŸ” DEBUG - Saved learning path with key:', sessionKey);
             
             // Show success message
-            this.addMessageToChat('assistant', '✅ ¡Ruta de aprendizaje generada exitosamente! Puedes verla en la sección "Rutas de Aprendizaje".');
+            this.addMessageToChat('assistant', 'âœ… Â¡Ruta de aprendizaje generada exitosamente! Puedes verla en la secciÃ³n "Rutas de Aprendizaje".');
             
             // Disable the button
             const button = document.querySelector('.generate-path-btn');
             if (button) {
                 button.disabled = true;
-                button.innerHTML = '✅ Ruta Generada';
+                button.innerHTML = 'âœ… Ruta Generada';
                 button.classList.add('disabled');
             }
             
@@ -661,74 +661,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Make makeAuthenticatedRequest available globally for MCP Tools
     window.makeAuthenticatedRequest = window.learningAgent.makeAuthenticatedRequest.bind(window.learningAgent);
-    
-    // Auto-completar campos de reservas si estamos en la página de reservas
-    if (window.location.pathname === '/reservations') {
-        console.log('🎯 Detectada página de reservas - configurando auto-completado');
-        setTimeout(autoCompleteReservationFields, 1000); // Esperar 1 segundo para que todo cargue
-    }
 });
-
-// Función para auto-completar campos de reservas
-async function autoCompleteReservationFields() {
-    console.log('🔄 Iniciando auto-completado de reservas...');
-    
-    try {
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-            console.log('❌ No hay token de acceso');
-            return;
-        }
-        
-        const response = await fetch('/auth/me', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (response.ok) {
-            const user = await response.json();
-            console.log('✅ Usuario obtenido para auto-completado:', user.email);
-            
-            // Auto-completar email
-            const emailInput = document.getElementById('correo');
-            if (emailInput) {
-                emailInput.value = user.email;
-                emailInput.style.backgroundColor = '#f8f9fa';
-                emailInput.style.color = '#6c757d';
-                emailInput.setAttribute('readonly', true);
-                console.log('✅ Email auto-completado:', user.email);
-            } else {
-                console.log('⚠️ Campo email no encontrado');
-            }
-            
-            // Auto-completar nombre
-            const nombreInput = document.getElementById('nombre');
-            if (nombreInput) {
-                let name = '';
-                if (user.first_name && user.last_name) {
-                    name = `${user.first_name} ${user.last_name}`;
-                } else if (user.first_name) {
-                    name = user.first_name;
-                } else if (user.last_name) {
-                    name = user.last_name;
-                } else {
-                    name = user.email.split('@')[0];
-                }
-                
-                nombreInput.value = name;
-                nombreInput.style.backgroundColor = '#f8f9fa';
-                nombreInput.style.color = '#6c757d';
-                nombreInput.setAttribute('readonly', true);
-                console.log('✅ Nombre auto-completado:', name);
-            } else {
-                console.log('⚠️ Campo nombre no encontrado');
-            }
-            
-        } else {
-            console.log('❌ Error obteniendo usuario:', response.status);
-        }
-    } catch (error) {
-        console.error('❌ Error en auto-completado:', error);
-    }
-}

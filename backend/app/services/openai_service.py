@@ -186,14 +186,25 @@ class OpenAIService:
         if recommendation_presented and user_approved_recommendation:
             next_action = "generate_path"
         
+        # Determinar si está listo para generar - dos escenarios válidos:
+        # 1. Completó el flujo normal de 3 preguntas + recomendación + aprobación
+        # 2. Usuario aprobó explícitamente la recomendación (para casos de testing/admin)
         ready_to_generate = (
-            all([
-                questions_asked["question_1_objectives"] and user_responses["objectives"],
-                questions_asked["question_2_level"] and user_responses["level"],
-                questions_asked["question_3_time_preference"] and user_responses["time_preference"]
-            ]) and 
-            recommendation_presented and 
-            user_approved_recommendation
+            (
+                all([
+                    questions_asked["question_1_objectives"] and user_responses["objectives"],
+                    questions_asked["question_2_level"] and user_responses["level"],
+                    questions_asked["question_3_time_preference"] and user_responses["time_preference"]
+                ]) and 
+                recommendation_presented and 
+                user_approved_recommendation
+            ) or 
+            (
+                # Escenario alternativo: usuario aprobó explícitamente sin seguir flujo completo
+                recommendation_presented and 
+                user_approved_recommendation and
+                next_action == "generate_path"
+            )
         )
         
         return {
@@ -379,14 +390,33 @@ Usa esta información para personalizar la explicación de por qué la ruta reco
             
             print(f"🔍 DEBUG - Conversation state: {conversation_state}")
             
-            # Si el estado indica que debe presentar recomendación pero no está en la respuesta, forzarlo
-            if (conversation_state["next_action"] == "present_recommendation" and 
-                "GENERATE_RECOMMENDATION" not in full_response and 
-                not conversation_state["recommendation_presented"]):
-                print("🔧 FORCING GENERATE_RECOMMENDATION pattern")
+            # FORZAR BOTÓN DE APROBACIÓN en múltiples escenarios
+            should_force_approval_button = (
+                # Escenario 1: Debe presentar recomendación pero no está en la respuesta
+                (conversation_state["next_action"] == "present_recommendation" and 
+                 "GENERATE_RECOMMENDATION" not in full_response and 
+                 not conversation_state["recommendation_presented"]) or
+                 
+                # Escenario 2: Está esperando aprobación pero no se mostró el botón
+                (conversation_state["next_action"] == "wait_for_approval" and 
+                 "GENERATE_RECOMMENDATION" not in full_response) or
+                 
+                # Escenario 3: Ya se presentó recomendación pero usuario no ha aprobado y no hay botón
+                (conversation_state["recommendation_presented"] and 
+                 not conversation_state["user_approved_recommendation"] and
+                 "GENERATE_RECOMMENDATION" not in full_response and
+                 conversation_state["next_action"] in ["wait_for_approval", "present_recommendation"])
+            )
+            
+            if should_force_approval_button:
+                print("🔧 FORCING GENERATE_RECOMMENDATION pattern - Multiple scenarios detected")
+                print(f"🔧 Next action: {conversation_state['next_action']}")
+                print(f"🔧 Recommendation presented: {conversation_state['recommendation_presented']}")
+                print(f"🔧 User approved: {conversation_state['user_approved_recommendation']}")
+                
                 recommendation_data = {
                     "action": "show_recommendation",
-                    "type": "recommendation",
+                    "type": "recommendation", 
                     "message": "Recomendación lista - esperando aprobación del usuario"
                 }
                 print(f"📋 Forcing recommendation_data: {recommendation_data}")
@@ -411,12 +441,6 @@ Usa esta información para personalizar la explicación de por qué la ruta reco
                 return
             else:
                 print("❌ GENERATE_RECOMMENDATION pattern NOT found in response")
-                
-                # Si no hay recomendación pero hay GENERATE_PATH_COUNT, es un error - no generar
-                if "GENERATE_PATH_COUNT:" in full_response:
-                    print("⚠️ WARNING: Found GENERATE_PATH_COUNT without GENERATE_RECOMMENDATION - skipping generation")
-                    print(f"🔍 Conversation state: {conversation_state}")
-                    return
             
             # Solo procesar generación de rutas si el usuario aprobó la recomendación Y se presentó la recomendación
             if (conversation_state["ready_to_generate"] and 
@@ -462,6 +486,13 @@ Usa esta información para personalizar la explicación de por qué la ruta reco
                     yield "", learning_path_json
             else:
                 print(f"ℹ️ Next action: {conversation_state['next_action']}. Waiting for user approval.")
+                
+                # Validación especial: Si hay GENERATE_PATH_COUNT pero no se aprobó la recomendación
+                if "GENERATE_PATH_COUNT:" in full_response and not conversation_state["user_approved_recommendation"]:
+                    print("⚠️ WARNING: Found GENERATE_PATH_COUNT but user hasn't approved recommendation yet")
+                    print(f"🔍 Recommendation presented: {conversation_state['recommendation_presented']}")
+                    print(f"🔍 User approved: {conversation_state['user_approved_recommendation']}")
+                    
                 # No generar rutas hasta que el usuario apruebe la recomendación
                 pass
                     
